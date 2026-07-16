@@ -1,0 +1,46 @@
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+.float { animation: floatY 5s ease-in-out infinite; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin 1s linear infinite; }
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  50% { box-shadow: 0 0 0 10px transparent; }
+}
+.pulse-glow { animation: pulseGlow 2.4s ease-out infinite; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.9s var(--ease) both; }
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes ripple {
+  to { transform: scale(2.6); opacity: 0; }
+}
+.ripple-el {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: ripple 650ms ease-out;
+  pointer-events: none;
+}
+
+/* Skill / about card entrance stagger handled via .reveal + JS IntersectionObserver in sections.css/base.css */

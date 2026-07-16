@@ -1,0 +1,97 @@
+/* ==========================================================================
+   DESIGN TOKENS
+   Theme: "Editor" — the whole site is styled like a code editor / IDE, since
+   the subject is a frontend developer. Amber (keyword) + teal (string) are
+   the two accents borrowed straight from syntax highlighting.
+   Light/dark are both first-class: toggled via [data-theme] on <html>.
+   ========================================================================== */
+
+:root {
+  /* ---- Brand accents (identical in both themes) ---- */
+  --accent: #ffb454;         /* amber – keyword */
+  --accent-2: #5eead4;       /* teal – string */
+  --accent-pink: #f57ec2;    /* magenta – tag, used sparingly */
+  --danger: #ff6b6b;
+  --success: #5eead4;
+  --warning: #ffb454;
+
+  /* ---- Typography ---- */
+  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: 2.5rem;
+  --fs-3xl: 3.5rem;
+
+  /* ---- Spacing scale ---- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4.5rem;
+  --sp-9: 6.5rem;
+
+  /* ---- Radius / shadow / motion ---- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 999px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-med: 320ms;
+  --dur-slow: 600ms;
+
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.38);
+
+  --container: 1180px;
+  --header-h: 76px;
+}
+
+/* ---- Dark theme (default) ---- */
+:root,
+[data-theme='dark'] {
+  --bg: #0b0f17;
+  --bg-alt: #0e1420;
+  --surface: #121826;
+  --surface-2: #171f2e;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #e6edf3;
+  --text-muted: #8b96a5;
+  --text-dim: #5c6675;
+  --glass-bg: rgba(23, 31, 46, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --scrollbar: #232c3d;
+  --code-shadow: 0 30px 80px rgba(255, 180, 84, 0.08);
+}
+
+/* ---- Light theme ---- */
+[data-theme='light'] {
+  --bg: #f5f6fa;
+  --bg-alt: #eef0f6;
+  --surface: #ffffff;
+  --surface-2: #f0f2f8;
+  --border: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(15, 23, 42, 0.16);
+  --text: #131826;
+  --text-muted: #545e70;
+  --text-dim: #7c8494;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --scrollbar: #d7dbe6;
+  --accent: #c97a1c;
+  --accent-2: #0f9488;
+  --code-shadow: 0 30px 80px rgba(201, 122, 28, 0.1);
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3a2e1a"/>
+      <stop offset="100%" stop-color="#0b0f17"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="420" fill="url(#g)"/>
+  <text x="50%" y="46%" font-family="monospace" font-size="75" fill="#ffffff" fill-opacity="0.9" text-anchor="middle" font-weight="700"></></text>
+  <text x="50%" y="66%" font-family="Arial, sans-serif" font-size="37" fill="#ffffff" text-anchor="middle" font-weight="600">Aam Bazar</text>
+  <text x="50%" y="78%" font-family="Arial, sans-serif" font-size="23" fill="#ffffffb0" text-anchor="middle">E-commerce</text>
+</svg>

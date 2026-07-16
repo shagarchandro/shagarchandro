@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel — Shagar Chandro Portfolio</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/svg+xml" href="../assets/images/profile/favicon.svg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<link rel="stylesheet" href="../css/variables.css" />
+<link rel="stylesheet" href="../css/base.css" />
+<link rel="stylesheet" href="../css/components.css" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div class="admin-login-screen" id="loginScreen">
+  <div class="glow-orb g1" style="background:var(--accent)"></div>
+  <div class="glow-orb g2" style="background:var(--accent-2)"></div>
+  <form class="admin-login-card glass" id="loginForm" novalidate>
+    <div class="admin-login-logo">
+      <span class="logo-mark">SC</span>
+      <div>
+        <strong>Admin Panel</strong>
+        <span>Portfolio Content Management</span>
+      </div>
+    </div>
+
+    <div class="field" id="loginUserField">
+      <label for="login-username">Username</label>
+      <input type="text" id="login-username" autocomplete="username" placeholder="admin" required />
+      <span class="field-error">Username is required.</span>
+    </div>
+    <div class="field" id="loginPassField">
+      <label for="login-password">Password</label>
+      <div class="password-wrap">
+        <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required />
+        <button type="button" class="pass-toggle" id="passToggle" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <span class="field-error">Password is required.</span>
+    </div>
+
+    <label class="remember-row">
+      <input type="checkbox" id="login-remember" />
+      <span>Remember me</span>
+    </label>
+
+    <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+      <i class="fa-solid fa-right-to-bracket"></i> Log In
+    </button>
+
+    <p class="admin-login-hint">Default credentials — Username: <code>admin</code> · Password: <code>admin123</code></p>
+    <a class="admin-login-back" href="../index.html"><i class="fa-solid fa-arrow-left"></i> Back to site</a>
+  </form>
+</div>
+
+<!-- ===================== DASHBOARD APP ===================== -->
+<div class="admin-app" id="adminApp" hidden>
+
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-head">
+      <span class="logo-mark">SC</span>
+      <div>
+        <strong>Shagar Chandro</strong>
+        <span>Admin Panel</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav" id="adminNav" aria-label="Admin sections">
+      <p class="admin-nav-label">Overview</p>
+      <button data-view="dashboard" class="admin-nav-link active"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>
+
+      <p class="admin-nav-label">Profile</p>
+      <button data-view="profile" class="admin-nav-link"><i class="fa-solid fa-id-card"></i> Profile</button>
+      <button data-view="hero" class="admin-nav-link"><i class="fa-solid fa-house"></i> Hero Section</button>
+      <button data-view="about" class="admin-nav-link"><i class="fa-solid fa-user"></i> About Section</button>
+
+      <p class="admin-nav-label">Content</p>
+      <button data-view="skills" class="admin-nav-link"><i class="fa-solid fa-code"></i> Skills</button>
+      <button data-view="projects" class="admin-nav-link"><i class="fa-solid fa-diagram-project"></i> Projects</button>
+      <button data-view="experience" class="admin-nav-link"><i class="fa-solid fa-briefcase"></i> Experience</button>
+      <button data-view="education" class="admin-nav-link"><i class="fa-solid fa-graduation-cap"></i> Education</button>
+      <button data-view="certificates" class="admin-nav-link"><i class="fa-solid fa-certificate"></i> Certificates</button>
+      <button data-view="gallery" class="admin-nav-link"><i class="fa-solid fa-images"></i> Gallery</button>
+      <button data-view="services" class="admin-nav-link"><i class="fa-solid fa-layer-group"></i> Services</button>
+      <button data-view="testimonials" class="admin-nav-link"><i class="fa-solid fa-comment-dots"></i> Testimonials</button>
+
+      <p class="admin-nav-label">Contact</p>
+      <button data-view="contact" class="admin-nav-link"><i class="fa-solid fa-address-book"></i> Contact Info</button>
+      <button data-view="social" class="admin-nav-link"><i class="fa-solid fa-share-nodes"></i> Social Media</button>
+      <button data-view="messages" class="admin-nav-link"><i class="fa-solid fa-envelope-open-text"></i> Messages <span class="nav-badge" id="msgBadge" hidden></span></button>
+
+      <p class="admin-nav-label">Site</p>
+      <button data-view="theme" class="admin-nav-link"><i class="fa-solid fa-palette"></i> Theme Settings</button>
+      <button data-view="website" class="admin-nav-link"><i class="fa-solid fa-globe"></i> Website Settings</button>
+      <button data-view="analytics" class="admin-nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</button>
+      <button data-view="security" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i> Security</button>
+    </nav>
+
+    <button class="admin-logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </aside>
+
+  <div class="admin-overlay" id="adminOverlay"></div>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <button class="icon-btn admin-menu-btn" id="adminMenuBtn" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+      <h1 class="admin-view-title" id="adminViewTitle">Dashboard</h1>
+      <div class="admin-topbar-actions">
+        <button class="icon-btn theme-toggle" id="adminThemeToggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-moon"></i><i class="fa-solid fa-sun"></i>
+        </button>
+        <a href="../index.html" target="_blank" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Site</a>
+      </div>
+    </header>
+
+    <main class="admin-content" id="adminContent">
+      <!-- Rendered dynamically by admin.js -->
+    </main>
+  </div>
+</div>
+
+<!-- ===================== MODAL (used by all CRUD sections) ===================== -->
+<div class="admin-modal-overlay" id="modalOverlay">
+  <div class="admin-modal" id="modalBox" role="dialog" aria-modal="true">
+    <div class="admin-modal-head">
+      <h2 id="modalTitle">Add Item</h2>
+      <button class="icon-btn" id="modalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="modalForm" class="admin-modal-body"></form>
+    <div class="admin-modal-foot">
+      <button type="button" class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button type="submit" form="modalForm" class="btn btn-primary" id="modalSave"><i class="fa-solid fa-check"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CONFIRM DIALOG ===================== -->
+<div class="admin-modal-overlay" id="confirmOverlay">
+  <div class="admin-modal admin-modal-sm">
+    <div class="admin-modal-head"><h2><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Are you sure?</h2></div>
+    <div class="admin-modal-body"><p id="confirmMessage">This action cannot be undone.</p></div>
+    <div class="admin-modal-foot">
+      <button type="button" class="btn btn-ghost" id="confirmCancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="confirmOk" style="background:var(--danger);box-shadow:none">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data-store.js"></script>
+<script src="../js/validation.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

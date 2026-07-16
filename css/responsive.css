@@ -1,0 +1,77 @@
+/* ==========================================================================
+   RESPONSIVE
+   Breakpoints: >=1440 desktop-xl · <=1180 laptop · <=980 tablet · <=680 mobile
+   ========================================================================== */
+
+/* ---------- Large desktop refinement ---------- */
+@media (min-width: 1440px) {
+  :root { --container: 1280px; }
+}
+
+/* ---------- Laptop / small desktop ---------- */
+@media (max-width: 1180px) {
+  .projects-grid,
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+  .skills-grid { grid-template-columns: repeat(3, 1fr); }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------- Tablet ---------- */
+@media (max-width: 980px) {
+  :root { --header-h: 68px; }
+
+  .nav-list:not(.nav-drawer .nav-list) { display: none; }
+  .nav-toggle { display: flex; }
+
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero .editor-window { transform: none; max-width: 560px; margin-inline: auto; }
+  .hero-cta,
+  .hero-socials { justify-content: center; }
+  .hero-desc { margin-inline: auto; }
+  .hero-title, .hero-role { text-align: center; }
+  .hero-kicker { justify-content: center; }
+
+  .about-grid { grid-template-columns: 1fr; }
+  .about-photo-wrap { max-width: 380px; margin-inline: auto; }
+
+  .skills-grid { grid-template-columns: repeat(2, 1fr); }
+  .cert-grid,
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+  .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+
+  .contact-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 680px) {
+  :root { --sp-8: 3.25rem; --sp-9: 4.5rem; }
+
+  .container { padding-inline: var(--sp-4); }
+
+  .projects-grid,
+  .skills-grid,
+  .cert-grid,
+  .services-grid { grid-template-columns: 1fr; }
+
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .about-meta { grid-template-columns: 1fr; }
+  .about-stats { grid-template-columns: repeat(2, 1fr); row-gap: var(--sp-5); }
+
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+
+  .editor-body { font-size: 0.8rem; }
+  .scroll-top-btn { right: var(--sp-4); bottom: var(--sp-4); width: 44px; height: 44px; }
+
+  .exp-tabs { flex-wrap: wrap; }
+}
+
+/* ---------- Very small phones ---------- */
+@media (max-width: 380px) {
+  .hero-cta { flex-direction: column; align-items: stretch; }
+  .btn { width: 100%; }
+}
