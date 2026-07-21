@@ -9,6 +9,7 @@
   right: -100%;
   width: min(320px, 84vw);
   height: 100vh;
+  height: 100dvh; /* accounts for mobile browser chrome (address bar) */
   z-index: 950;
   padding: var(--sp-8) var(--sp-6);
   display: flex;
@@ -19,6 +20,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   border-left: 1px solid var(--glass-border);
   transition: right var(--dur-med) var(--ease);
+  overflow-y: auto;
 }
 .nav-drawer.open { right: 0; }
 .nav-drawer .nav-list {
@@ -26,6 +28,11 @@
   align-items: flex-start;
   gap: var(--sp-5);
   font-size: var(--fs-md);
+  flex-shrink: 0;
+}
+.nav-drawer .btn-block {
+  flex-shrink: 0;
+  margin-top: auto;
 }
 .nav-overlay {
   position: fixed;

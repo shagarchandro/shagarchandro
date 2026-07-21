@@ -57,9 +57,35 @@
       <i class="fa-solid fa-right-to-bracket"></i> Log In
     </button>
 
-    <p class="admin-login-hint">Default credentials — Username: <code>admin</code> · Password: <code>admin123</code></p>
+    <button type="button" class="admin-login-forgot" id="forgotPasswordBtn">Forgot password?</button>
     <a class="admin-login-back" href="../index.html"><i class="fa-solid fa-arrow-left"></i> Back to site</a>
   </form>
+</div>
+
+<!-- ===== Password recovery (via recovery key) ===== -->
+<div class="admin-modal-overlay" id="recoveryOverlay">
+  <div class="admin-modal admin-modal-sm" role="dialog" aria-modal="true">
+    <div class="admin-modal-head">
+      <h2>Reset Password</h2>
+      <button class="icon-btn" id="recoveryClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="recoveryForm" class="admin-modal-body" novalidate>
+      <div class="field">
+        <label for="recovery-key">Recovery Key</label>
+        <input type="text" id="recovery-key" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" required style="font-family:var(--font-mono);text-transform:uppercase" />
+      </div>
+      <div class="field">
+        <label for="recovery-newpass">New Password</label>
+        <input type="password" id="recovery-newpass" minlength="8" required />
+      </div>
+      <div class="field">
+        <label for="recovery-confirm">Confirm New Password</label>
+        <input type="password" id="recovery-confirm" minlength="8" required />
+      </div>
+      <p style="color:var(--text-dim);font-size:var(--fs-xs)">Don't have a recovery key? One must be generated in advance from Security → Account Recovery Key while logged in — without it, this browser's admin data would need to be reset from scratch.</p>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:var(--sp-4)"><i class="fa-solid fa-unlock"></i> Reset Password</button>
+    </form>
+  </div>
 </div>
 
 <!-- ===================== DASHBOARD APP ===================== -->
@@ -91,16 +117,23 @@
       <button data-view="certificates" class="admin-nav-link"><i class="fa-solid fa-certificate"></i> Certificates</button>
       <button data-view="gallery" class="admin-nav-link"><i class="fa-solid fa-images"></i> Gallery</button>
       <button data-view="services" class="admin-nav-link"><i class="fa-solid fa-layer-group"></i> Services</button>
+      <button data-view="clients" class="admin-nav-link"><i class="fa-solid fa-handshake"></i> Clients</button>
       <button data-view="testimonials" class="admin-nav-link"><i class="fa-solid fa-comment-dots"></i> Testimonials</button>
+      <button data-view="pendingTestimonials" class="admin-nav-link"><i class="fa-solid fa-user-clock"></i> Testimonial Requests <span class="nav-badge" id="pendingBadge" hidden></span></button>
+      <button data-view="blog" class="admin-nav-link"><i class="fa-solid fa-pen-nib"></i> Blog</button>
+      <button data-view="faqs" class="admin-nav-link"><i class="fa-solid fa-circle-question"></i> FAQ</button>
 
       <p class="admin-nav-label">Contact</p>
       <button data-view="contact" class="admin-nav-link"><i class="fa-solid fa-address-book"></i> Contact Info</button>
       <button data-view="social" class="admin-nav-link"><i class="fa-solid fa-share-nodes"></i> Social Media</button>
+      <button data-view="integrations" class="admin-nav-link"><i class="fa-solid fa-plug"></i> Integrations</button>
       <button data-view="messages" class="admin-nav-link"><i class="fa-solid fa-envelope-open-text"></i> Messages <span class="nav-badge" id="msgBadge" hidden></span></button>
+      <button data-view="newsletter" class="admin-nav-link"><i class="fa-solid fa-paper-plane"></i> Newsletter</button>
 
       <p class="admin-nav-label">Site</p>
       <button data-view="theme" class="admin-nav-link"><i class="fa-solid fa-palette"></i> Theme Settings</button>
       <button data-view="website" class="admin-nav-link"><i class="fa-solid fa-globe"></i> Website Settings</button>
+      <button data-view="data" class="admin-nav-link"><i class="fa-solid fa-database"></i> Data Management</button>
       <button data-view="analytics" class="admin-nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</button>
       <button data-view="security" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i> Security</button>
     </nav>
@@ -155,6 +188,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="../js/data-store.js"></script>
 <script src="../js/validation.js"></script>
 <script src="js/admin.js"></script>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>Shagar Chandro — Frontend Developer — Blog</title>
+  <link>https://shagarchandro.github.io/shagarchandro-Portfolio/index.html</link>
+  <description>Notes on frontend development, design and building this site.</description>
+  <language>en-us</language>
+  <item>
+    <title>How I Built This Portfolio (and Its Admin Panel)</title>
+    <link>https://shagarchandro.github.io/shagarchandro-Portfolio/blog.html?post=building-this-portfolio</link>
+    <guid>https://shagarchandro.github.io/shagarchandro-Portfolio/blog.html?post=building-this-portfolio</guid>
+    <description>A behind-the-scenes look at building a fully static, backend-free portfolio with its own custom CMS.</description>
+    <pubDate>Mon, 01 Jun 2026 00:00:00 GMT</pubDate>
+  </item>
+  <item>
+    <title>Why I Still Reach for Vanilla JavaScript</title>
+    <link>https://shagarchandro.github.io/shagarchandro-Portfolio/blog.html?post=why-vanilla-js</link>
+    <guid>https://shagarchandro.github.io/shagarchandro-Portfolio/blog.html?post=why-vanilla-js</guid>
+    <description>Frameworks are great, but plain JavaScript still wins for small, fast, dependency-free sites.</description>
+    <pubDate>Tue, 12 May 2026 00:00:00 GMT</pubDate>
+  </item>
+  <item>
+    <title>My Responsive Design Checklist</title>
+    <link>https://shagarchandro.github.io/shagarchandro-Portfolio/blog.html?post=responsive-design-checklist</link>
+    <guid>https://shagarchandro.github.io/shagarchandro-Portfolio/blog.html?post=responsive-design-checklist</guid>
+    <description>A quick checklist I run through on every project before calling it "done".</description>
+    <pubDate>Mon, 20 Apr 2026 00:00:00 GMT</pubDate>
+  </item>
+</channel>
+</rss>

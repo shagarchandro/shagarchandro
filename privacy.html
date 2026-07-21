@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — Shagar Chandro</title>
+<meta name="robots" content="index, follow" />
+<link rel="icon" type="image/svg+xml" href="assets/images/profile/favicon.svg" />
+<meta name="theme-color" content="#0b0f17" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/components.css" />
+<link rel="stylesheet" href="css/sections.css" />
+<link rel="stylesheet" href="css/animations.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+<link rel="stylesheet" href="css/premium.css" />
+
+<style>
+  .policy-page { max-width: 760px; margin: 0 auto; }
+  .policy-page h2 { font-size: var(--fs-lg); margin: var(--sp-7) 0 var(--sp-3); }
+  .policy-page p, .policy-page li { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.8; margin-bottom: var(--sp-3); }
+  .policy-page ul { padding-left: 1.4rem; margin-bottom: var(--sp-4); }
+  .policy-page ul li { list-style: disc; }
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<header class="site-header scrolled">
+  <nav class="nav container" aria-label="Primary">
+    <a href="index.html" class="logo">
+      <span class="logo-mark">SC</span>
+      <span>shagar<span class="logo-dot">.</span>dev</span>
+    </a>
+    <ul class="nav-list">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#faq">FAQ</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark and light mode">
+        <i class="fa-solid fa-moon" aria-hidden="true"></i>
+        <i class="fa-solid fa-sun" aria-hidden="true"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main id="main" class="section" style="padding-top:calc(var(--header-h) + var(--sp-7))">
+  <div class="container section-inner policy-page">
+    <p class="eyebrow"><i class="fa-solid fa-shield-halved"></i> Privacy</p>
+    <h1 class="section-title">Privacy Policy</h1>
+    <p>Last updated: July 2026</p>
+
+    <h2>Short version</h2>
+    <p>This site doesn't have a server or database. Everything it stores lives entirely in your own browser's local storage. Nothing is sent to, or collected by, any third party through the site itself.</p>
+
+    <h2>What's stored, and where</h2>
+    <ul>
+      <li><strong>Theme and language preference</strong> — remembered in your browser so you don't have to reset them every visit.</li>
+      <li><strong>Anonymous visit counters</strong> — a simple count of page views, kept locally, with no IP address, device fingerprint, or personal identifier attached.</li>
+      <li><strong>Contact form submissions</strong> — stored locally so the site owner can review them from the Admin Panel. If the optional EmailJS or Google Sheets integrations are enabled by the site owner, a copy of what you submit is also sent to those services — see their respective privacy policies.</li>
+      <li><strong>Newsletter signup</strong> — if you subscribe from the footer, your email address is stored locally for the site owner to see in the Admin Panel. It is not sent anywhere else automatically.</li>
+      <li><strong>Testimonial submissions</strong> — anything you submit through "Share Your Experience" is stored locally pending the site owner's review before publishing.</li>
+    </ul>
+
+    <h2>Cookies</h2>
+    <p>This site does not use cookies. It uses your browser's local storage API instead, which is not shared across sites and is never transmitted over the network by itself.</p>
+
+    <h2>Third-party services</h2>
+    <p>Fonts and icons are loaded from Google Fonts and Font Awesome's public CDNs. A GitHub activity widget (if enabled by the site owner) fetches public profile data from the GitHub API. These requests are subject to the respective providers' own privacy policies.</p>
+
+    <h2>Your control</h2>
+    <p>You can clear everything this site has stored at any time by clearing your browser's site data for this domain. Doing so resets the site to its defaults on your next visit.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about this policy can be sent through the <a href="index.html#contact">contact form</a>.</p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-bottom">
+    <span>© 2026 Shagar Chandro. All rights reserved.</span>
+    <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to portfolio</a>
+  </div>
+</footer>
+
+<button class="scroll-top-btn" id="scrollTopBtn" aria-label="Scroll to top" type="button">
+  <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+</button>
+
+<script>
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+  const progress = document.getElementById('scrollProgress');
+  const topBtn = document.getElementById('scrollTopBtn');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    progress.style.width = `${(h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100}%`;
+    topBtn.classList.toggle('visible', h.scrollTop > 500);
+  }, { passive: true });
+  topBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+</script>
+</body>
+</html>

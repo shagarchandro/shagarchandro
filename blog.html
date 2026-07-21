@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blog — Shagar Chandro</title>
+<meta name="description" content="Notes on frontend development, design and building this portfolio." />
+<meta name="robots" content="index, follow" />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="assets/images/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="assets/images/og-image.png" />
+<link rel="icon" type="image/svg+xml" href="assets/images/profile/favicon.svg" />
+<meta name="theme-color" content="#0b0f17" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/components.css" />
+<link rel="stylesheet" href="css/sections.css" />
+<link rel="stylesheet" href="css/animations.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+<link rel="stylesheet" href="css/premium.css" />
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<header class="site-header scrolled" id="siteHeader">
+  <nav class="nav container" aria-label="Primary">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" id="logoMark">SC</span>
+      <span id="logoText">shagar<span class="logo-dot">.</span>dev</span>
+    </a>
+    <ul class="nav-list">
+      <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+      <li><a href="index.html#blog" class="active" data-i18n="nav.blog">Blog</a></li>
+      <li><a href="index.html#projects" data-i18n="nav.projects">Projects</a></li>
+      <li><a href="index.html#contact" data-i18n="nav.contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language">
+        <span id="langToggleLabel">বাং</span>
+      </button>
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark and light mode">
+        <i class="fa-solid fa-moon" aria-hidden="true"></i>
+        <i class="fa-solid fa-sun" aria-hidden="true"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main id="main" class="section" style="padding-top:calc(var(--header-h) + var(--sp-7))">
+  <div class="container section-inner" id="postContent">
+    <!-- Rendered by js/blog.js -->
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-bottom">
+    <span id="footerText">© 2026 Shagar Chandro. All rights reserved.</span>
+    <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to portfolio</a>
+  </div>
+</footer>
+
+<button class="scroll-top-btn" id="scrollTopBtn" aria-label="Scroll to top" type="button">
+  <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+</button>
+
+<script src="js/data-store.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/blog.js"></script>
+</body>
+</html>

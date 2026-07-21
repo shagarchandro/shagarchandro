@@ -70,6 +70,12 @@
   .exp-tabs { flex-wrap: wrap; }
 }
 
+/* ---------- Short viewports (landscape phones, small screens) ---------- */
+@media (max-height: 700px) {
+  .nav-drawer { padding-block: var(--sp-6); gap: var(--sp-4); }
+  .nav-drawer .nav-list { gap: var(--sp-3); font-size: var(--fs-base); }
+}
+
 /* ---------- Very small phones ---------- */
 @media (max-width: 380px) {
   .hero-cta { flex-direction: column; align-items: stretch; }

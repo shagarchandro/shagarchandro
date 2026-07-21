@@ -58,6 +58,33 @@
     document.getElementById('passToggle').innerHTML = `<i class="fa-solid fa-eye${isPass ? '-slash' : ''}"></i>`;
   });
 
+  /* ---- Forgot password (via recovery key) ---- */
+  const recoveryOverlay = document.getElementById('recoveryOverlay');
+  document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
+    await AuthStore.init();
+    if (!AuthStore.hasRecoveryKey()) {
+      Toast.error('No recovery key set', 'Log in and generate one from Security → Account Recovery Key first.');
+      return;
+    }
+    document.getElementById('recoveryForm').reset();
+    recoveryOverlay.classList.add('open');
+  });
+  document.getElementById('recoveryClose').addEventListener('click', () => recoveryOverlay.classList.remove('open'));
+  recoveryOverlay.addEventListener('click', (e) => { if (e.target === recoveryOverlay) recoveryOverlay.classList.remove('open'); });
+
+  document.getElementById('recoveryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const key = document.getElementById('recovery-key').value.trim();
+    const p1 = document.getElementById('recovery-newpass').value;
+    const p2 = document.getElementById('recovery-confirm').value;
+    if (p1 !== p2) { Toast.error('Passwords do not match', 'Please re-enter matching passwords.'); return; }
+    if (p1.length < 8) { Toast.error('Password too short', 'Use at least 8 characters.'); return; }
+    const ok = await AuthStore.resetPasswordWithRecoveryKey(key, p1);
+    if (!ok) { Toast.error('Invalid recovery key', 'Double-check the key and try again.'); return; }
+    recoveryOverlay.classList.remove('open');
+    Toast.success('Password reset', 'Your recovery key has been used and is no longer valid — log in with your new password.');
+  });
+
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('login-username').value.trim();
@@ -86,6 +113,7 @@
       return;
     }
     AuthStore.startSession(remember);
+    SecurityLog.record();
     Toast.success('Welcome back', 'Logged in successfully.');
     enterApp();
   });
@@ -150,9 +178,12 @@
   const viewTitles = {
     dashboard: 'Dashboard', profile: 'Profile Management', hero: 'Hero Section', about: 'About Section',
     skills: 'Skills', projects: 'Projects', experience: 'Experience', education: 'Education',
-    certificates: 'Certificates', gallery: 'Gallery', services: 'Services', testimonials: 'Testimonials',
-    contact: 'Contact Information', social: 'Social Media', messages: 'Messages',
-    theme: 'Theme Settings', website: 'Website Settings', analytics: 'Analytics', security: 'Security'
+    certificates: 'Certificates', gallery: 'Gallery', services: 'Services', clients: 'Clients', testimonials: 'Testimonials',
+    pendingTestimonials: 'Testimonial Requests',
+    blog: 'Blog', faqs: 'FAQ',
+    contact: 'Contact Information', social: 'Social Media', integrations: 'Integrations', messages: 'Messages',
+    newsletter: 'Newsletter Subscribers',
+    theme: 'Theme Settings', website: 'Website Settings', data: 'Data Management', analytics: 'Analytics', security: 'Security'
   };
 
   const viewRenderers = {
@@ -161,8 +192,12 @@
     experience: () => renderCrud('experience', experienceConfig), education: () => renderCrud('education', educationConfig),
     certificates: () => renderCrud('certificates', certificatesConfig), gallery: () => renderCrud('gallery', galleryConfig),
     services: () => renderCrud('services', servicesConfig), testimonials: () => renderCrud('testimonials', testimonialsConfig),
-    contact: renderContact, social: renderSocial, messages: renderMessages,
-    theme: renderTheme, website: renderWebsite, analytics: renderAnalytics, security: renderSecurity
+    clients: () => renderCrud('clients', clientsConfig),
+    pendingTestimonials: renderPendingTestimonials,
+    blog: () => renderCrud('blog', blogConfig), faqs: () => renderCrud('faqs', faqsConfig),
+    contact: renderContact, social: renderSocial, integrations: renderIntegrations, messages: renderMessages,
+    newsletter: renderNewsletter,
+    theme: renderTheme, website: renderWebsite, data: renderDataManagement, analytics: renderAnalytics, security: renderSecurity
   };
 
   function navigateTo(view) {
@@ -180,6 +215,13 @@
     const badge = document.getElementById('msgBadge');
     badge.hidden = unread === 0;
     badge.textContent = unread;
+
+    const pending = (data.pendingTestimonials || []).length;
+    const pendingBadge = document.getElementById('pendingBadge');
+    if (pendingBadge) {
+      pendingBadge.hidden = pending === 0;
+      pendingBadge.textContent = pending;
+    }
   }
 
   /* ============================ DASHBOARD ============================ */
@@ -189,9 +231,19 @@
       { label: 'Total Skills', value: data.skills.length, icon: 'fa-code' },
       { label: 'Total Certificates', value: data.certificates.length, icon: 'fa-certificate' },
       { label: 'Total Messages', value: data.messages.length, icon: 'fa-envelope' },
-      { label: 'Total Visitors', value: data.analytics.visitors, icon: 'fa-users' }
+      { label: 'Total Visitors', value: data.analytics.visitors, icon: 'fa-users' },
+      { label: 'Total Blog Posts', value: data.blog.length, icon: 'fa-pen-nib' }
     ];
+    const daysSince = BackupTracker.daysSinceLastExport();
+    const needsBackupReminder = daysSince === null || daysSince >= 14;
     root.innerHTML = `
+      ${needsBackupReminder ? `
+        <div class="admin-reminder-banner">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>${daysSince === null ? "You haven't exported a backup yet." : `It's been ${daysSince} days since your last backup.`} Everything here lives only in this browser.</span>
+          <button class="btn btn-primary btn-sm" id="dashboardBackupBtn"><i class="fa-solid fa-file-export"></i> Export Now</button>
+        </div>
+      ` : ''}
       <div class="stat-cards-grid">
         ${stats.map(s => `
           <div class="stat-card card">
@@ -221,6 +273,7 @@
         <div class="bar-row"><span class="bar-label">Gallery Items</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(data.gallery.length * 20, 100)}%"></div></div><span class="bar-value">${data.gallery.length}</span></div>
       </div>
     `;
+    document.getElementById('dashboardBackupBtn')?.addEventListener('click', () => navigateTo('data'));
   }
 
   /* ============================ SIMPLE SETTINGS FORM HELPER ============================ */
@@ -244,6 +297,7 @@
           <div class="field"><label>Full Name</label><input name="name" value="${escapeHtml(p.name)}" required /></div>
           <div class="field"><label>Title</label><input name="title" value="${escapeHtml(p.title)}" required /></div>
           <div class="field full"><label>Bio</label><textarea name="bio" required>${escapeHtml(p.bio)}</textarea></div>
+          <div class="field"><label>GitHub Username (powers the GitHub activity widget)</label><input name="githubUsername" value="${escapeHtml(p.githubUsername || '')}" placeholder="e.g. shagarchandro" /></div>
           <div class="field full">
             <label>Profile Photo</label>
             <div class="image-upload">
@@ -276,7 +330,7 @@
       Toast.info('Resume ready', 'New resume will be applied when you save.');
     });
     bindSimpleForm(root, 'profileForm', (fd) => {
-      const updated = { ...data.profile, name: fd.get('name'), title: fd.get('title'), bio: fd.get('bio'), photo: fd.get('photo'), resumeUrl: fd.get('resumeUrl') };
+      const updated = { ...data.profile, name: fd.get('name'), title: fd.get('title'), bio: fd.get('bio'), githubUsername: fd.get('githubUsername').trim(), photo: fd.get('photo'), resumeUrl: fd.get('resumeUrl') };
       DataStore.update('profile', updated);
     });
   }
@@ -292,6 +346,7 @@
           <div class="field full"><label>Subtitle</label><input name="subtitle" value="${escapeHtml(h.subtitle)}" required /></div>
           <div class="field full"><label>Typed Roles (comma separated)</label><input name="typedRoles" value="${escapeHtml((h.typedRoles || []).join(', '))}" placeholder="Frontend Developer, React Developer" /></div>
           <div class="field full"><label>Description</label><textarea name="description" required>${escapeHtml(h.description)}</textarea></div>
+          <div class="field full"><label>"Now" Status (shown as a small badge under the hero — leave blank to hide)</label><input name="nowStatus" value="${escapeHtml(h.nowStatus || '')}" placeholder="e.g. Building a new SaaS dashboard" /></div>
         </div>
         <h3 style="margin-top:var(--sp-5)">Social Links</h3>
         <div id="heroSocialList"></div>
@@ -329,6 +384,7 @@
       const updated = {
         ...data.hero,
         title: fd.get('title'), subtitle: fd.get('subtitle'), description: fd.get('description'),
+        nowStatus: fd.get('nowStatus').trim(),
         typedRoles: fd.get('typedRoles').split(',').map(s => s.trim()).filter(Boolean),
         socialLinks: socials
       };
@@ -421,6 +477,170 @@
     });
   }
 
+  /* ============================ INTEGRATIONS (EmailJS + Google Sheets) ============================ */
+  function renderIntegrations(root) {
+    const cfg = data.integrations || { emailjs: {}, googleSheets: {}, whatsapp: {} };
+    const ej = cfg.emailjs || {};
+    const gs = cfg.googleSheets || {};
+    const wa = cfg.whatsapp || {};
+
+    root.innerHTML = `
+      <div class="admin-panel-head"><div><h2>Integrations</h2><p>Send contact-form submissions to email and/or a Google Sheet, on top of the local Messages inbox.</p></div></div>
+
+      <form id="emailjsForm" class="admin-card card">
+        <h3><i class="fa-solid fa-envelope"></i> EmailJS — send an email on submit</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">
+          Create a free account at <a href="https://www.emailjs.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">emailjs.com</a>,
+          add an Email Service and a Template, then paste the three IDs below. The template can use
+          <code>{{from_name}}</code>, <code>{{reply_to}}</code>, <code>{{subject}}</code> and <code>{{message}}</code> variables.
+        </p>
+        <label class="remember-row" style="margin-bottom:var(--sp-4)">
+          <input type="checkbox" name="enabled" ${ej.enabled ? 'checked' : ''} />
+          <span>Enable EmailJS delivery</span>
+        </label>
+        <div class="admin-form-grid">
+          <div class="field"><label>Service ID</label><input name="serviceId" value="${escapeHtml(ej.serviceId || '')}" placeholder="service_xxxxxxx" /></div>
+          <div class="field"><label>Template ID</label><input name="templateId" value="${escapeHtml(ej.templateId || '')}" placeholder="template_xxxxxxx" /></div>
+          <div class="field full"><label>Public Key</label><input name="publicKey" value="${escapeHtml(ej.publicKey || '')}" placeholder="e.g. AbCdEfGhIjKlMnOp" /></div>
+        </div>
+        <div class="data-action-row">
+          <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save EmailJS Settings</button>
+          <button class="btn btn-outline" type="button" id="testEmailBtn"><i class="fa-solid fa-paper-plane"></i> Send Test Email</button>
+        </div>
+      </form>
+
+      <form id="sheetsForm" class="admin-card card">
+        <h3><i class="fa-solid fa-table"></i> Google Sheets — log every submission to a sheet</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">
+          Browsers can't write to a Google Sheet directly — you need a small <strong>Google Apps Script Web App</strong>
+          in front of it. In your Sheet, open <em>Extensions → Apps Script</em>, paste the script below, deploy it as a
+          <em>Web App</em> (Execute as: Me, Who has access: Anyone), then paste the resulting <code>/exec</code> URL here.
+          Full steps are in the README.
+        </p>
+        <pre style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--sp-4);font-size:var(--fs-xs);overflow-x:auto;margin-bottom:var(--sp-4);font-family:var(--font-mono);white-space:pre">function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = JSON.parse(e.postData.contents);
+  sheet.appendRow([data.date, data.name, data.email, data.subject, data.message]);
+  return ContentService.createTextOutput(JSON.stringify({result:"success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+        <label class="remember-row" style="margin-bottom:var(--sp-4)">
+          <input type="checkbox" name="enabled" ${gs.enabled ? 'checked' : ''} />
+          <span>Enable Google Sheets logging</span>
+        </label>
+        <div class="field full"><label>Apps Script Web App URL</label><input name="webAppUrl" value="${escapeHtml(gs.webAppUrl || '')}" placeholder="https://script.google.com/macros/s/XXXXXXXX/exec" /></div>
+        <div class="data-action-row">
+          <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Google Sheets Settings</button>
+          <button class="btn btn-outline" type="button" id="testSheetBtn"><i class="fa-solid fa-table"></i> Send Test Row</button>
+        </div>
+        <p style="color:var(--text-dim);font-size:var(--fs-xs);margin-top:var(--sp-3)"><i class="fa-solid fa-circle-info"></i> Because of how Apps Script Web Apps respond to browsers, this site can't confirm the row was written — check your sheet after testing.</p>
+      </form>
+
+      <form id="whatsappForm" class="admin-card card">
+        <h3><i class="fa-brands fa-whatsapp" style="color:#25d366"></i> WhatsApp — floating chat button</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">Adds a floating WhatsApp button to every page that opens a chat with a pre-filled message.</p>
+        <label class="remember-row" style="margin-bottom:var(--sp-4)">
+          <input type="checkbox" name="enabled" ${wa.enabled ? 'checked' : ''} />
+          <span>Show WhatsApp button</span>
+        </label>
+        <div class="admin-form-grid">
+          <div class="field"><label>WhatsApp Number (with country code, digits only)</label><input name="number" value="${escapeHtml(wa.number || '')}" placeholder="8801305144356" /></div>
+          <div class="field"><label>Pre-filled Message</label><input name="message" value="${escapeHtml(wa.message || '')}" /></div>
+        </div>
+        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save WhatsApp Settings</button>
+      </form>
+    `;
+
+    bindSimpleForm(root, 'emailjsForm', (fd) => {
+      DataStore.update('integrations', {
+        ...data.integrations,
+        emailjs: {
+          enabled: fd.get('enabled') === 'on',
+          serviceId: fd.get('serviceId').trim(),
+          templateId: fd.get('templateId').trim(),
+          publicKey: fd.get('publicKey').trim()
+        }
+      });
+    });
+
+    bindSimpleForm(root, 'sheetsForm', (fd) => {
+      DataStore.update('integrations', {
+        ...data.integrations,
+        googleSheets: {
+          enabled: fd.get('enabled') === 'on',
+          webAppUrl: fd.get('webAppUrl').trim()
+        }
+      });
+    });
+
+    bindSimpleForm(root, 'whatsappForm', (fd) => {
+      DataStore.update('integrations', {
+        ...data.integrations,
+        whatsapp: {
+          enabled: fd.get('enabled') === 'on',
+          number: fd.get('number').trim(),
+          message: fd.get('message').trim()
+        }
+      });
+    });
+
+    document.getElementById('testEmailBtn').addEventListener('click', async () => {
+      const form = document.getElementById('emailjsForm');
+      const serviceId = form.querySelector('[name="serviceId"]').value.trim();
+      const templateId = form.querySelector('[name="templateId"]').value.trim();
+      const publicKey = form.querySelector('[name="publicKey"]').value.trim();
+      if (!serviceId || !templateId || !publicKey) {
+        Toast.error('Missing fields', 'Fill in Service ID, Template ID and Public Key first.');
+        return;
+      }
+      if (typeof emailjs === 'undefined') {
+        Toast.error('EmailJS unavailable', 'The EmailJS script did not load — check your internet connection.');
+        return;
+      }
+      const btn = document.getElementById('testEmailBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Sending...';
+      try {
+        await emailjs.send(serviceId, templateId, {
+          from_name: 'Admin Test',
+          reply_to: data.contact.email,
+          subject: 'Test email from Admin Panel',
+          message: 'This is a test message sent from the Integrations panel to confirm your EmailJS setup works.'
+        }, { publicKey });
+        Toast.success('Test email sent', 'Check the inbox tied to your EmailJS template.');
+      } catch (err) {
+        Toast.error('Send failed', (err && err.text) || 'Check your Service ID, Template ID and Public Key.');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Test Email';
+    });
+
+    document.getElementById('testSheetBtn').addEventListener('click', async () => {
+      const form = document.getElementById('sheetsForm');
+      const webAppUrl = form.querySelector('[name="webAppUrl"]').value.trim();
+      if (!webAppUrl) {
+        Toast.error('Missing URL', 'Paste your Apps Script Web App URL first.');
+        return;
+      }
+      const btn = document.getElementById('testSheetBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Sending...';
+      try {
+        await fetch(webAppUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ date: new Date().toISOString(), name: 'Admin Test', email: 'test@example.com', subject: 'Test row', message: 'Sent from the Integrations panel test button.' })
+        });
+        Toast.success('Test row sent', "Request sent — open your Google Sheet to confirm a new row appeared.");
+      } catch (err) {
+        Toast.error('Request failed', 'Could not reach that URL — double check it was deployed correctly.');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-table"></i> Send Test Row';
+    });
+  }
+
   /* ============================ THEME SETTINGS ============================ */
   function renderTheme(root) {
     const s = data.siteSettings;
@@ -482,6 +702,12 @@
             <input type="hidden" name="favicon" id="faviconValue" value="${escapeHtml(s.favicon)}" />
           </div>
           <div class="field full"><label>Footer Text</label><input name="footerText" value="${escapeHtml(s.footerText)}" required /></div>
+          <div class="field full">
+            <label class="remember-row" style="margin:0">
+              <input type="checkbox" name="cookieConsentEnabled" ${s.cookieConsentEnabled ? 'checked' : ''} />
+              <span>Show the local-storage/privacy notice banner to first-time visitors</span>
+            </label>
+          </div>
         </div>
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Website Settings</button>
       </form>
@@ -494,7 +720,114 @@
       document.getElementById('faviconValue').value = b64;
     });
     bindSimpleForm(root, 'websiteForm', (fd) => {
-      DataStore.update('siteSettings', { ...data.siteSettings, siteTitle: fd.get('siteTitle'), logoText: fd.get('logoText'), favicon: fd.get('favicon'), footerText: fd.get('footerText') });
+      DataStore.update('siteSettings', { ...data.siteSettings, siteTitle: fd.get('siteTitle'), logoText: fd.get('logoText'), favicon: fd.get('favicon'), footerText: fd.get('footerText'), cookieConsentEnabled: fd.get('cookieConsentEnabled') === 'on' });
+    });
+  }
+
+  /* ============================ TESTIMONIAL REQUESTS (visitor submissions) ============================ */
+  function renderPendingTestimonials(root) {
+    root.innerHTML = `
+      <div class="admin-panel-head"><div><h2>Testimonial Requests</h2><p>Submitted from the "Share Your Experience" form on the public site. Approve to publish, or reject to discard.</p></div></div>
+      <div id="pendingList"></div>
+    `;
+    const listEl = document.getElementById('pendingList');
+    function draw() {
+      const items = data.pendingTestimonials || [];
+      listEl.innerHTML = items.map(t => `
+        <div class="message-item card" data-id="${t.id}">
+          <div style="flex:1">
+            <div class="message-meta">${escapeHtml(t.name)} · ${escapeHtml(t.role)} · ${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)} · ${fmtDate(t.submittedAt)}</div>
+            <div class="message-body">${escapeHtml(t.text)}</div>
+          </div>
+          <div class="admin-row-actions">
+            <button class="approve-item" title="Approve & publish"><i class="fa-solid fa-check"></i></button>
+            <button class="danger reject-item" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+      `).join('') || `<div class="admin-empty card"><i class="fa-solid fa-user-clock"></i>No pending testimonial requests.</div>`;
+
+      listEl.querySelectorAll('.approve-item').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.closest('[data-id]').dataset.id;
+        const item = (data.pendingTestimonials || []).find(t => t.id === id);
+        if (!item) return;
+        DataStore.addItem('testimonials', { name: item.name, role: item.role, text: item.text, rating: item.rating, photo: item.photo });
+        DataStore.deleteItem('pendingTestimonials', id);
+        data = DataStore.get();
+        Toast.success('Approved', 'Testimonial published to the site.');
+        draw();
+        updateMsgBadge();
+      }));
+      listEl.querySelectorAll('.reject-item').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.closest('[data-id]').dataset.id;
+        confirmAction('Reject and discard this testimonial request?', () => {
+          DataStore.deleteItem('pendingTestimonials', id);
+          data = DataStore.get();
+          Toast.success('Rejected', 'Request discarded.');
+          draw();
+          updateMsgBadge();
+        });
+      }));
+    }
+    draw();
+  }
+
+  /* ============================ NEWSLETTER SUBSCRIBERS ============================ */
+  function renderNewsletter(root) {
+    const subs = data.newsletterSubscribers || [];
+    root.innerHTML = `
+      <div class="admin-panel-head">
+        <div><h2>Newsletter Subscribers</h2><p>${subs.length} subscriber(s) from the footer signup form.</p></div>
+        <button class="btn btn-outline" id="exportSubsBtn"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+      </div>
+      <div class="admin-table-wrap card" id="subsTableWrap"></div>
+    `;
+    function draw() {
+      const wrap = document.getElementById('subsTableWrap');
+      const list = data.newsletterSubscribers || [];
+      if (!list.length) {
+        wrap.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-paper-plane"></i>No subscribers yet.</div>`;
+        return;
+      }
+      wrap.innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>Email</th><th>Subscribed</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody>
+            ${list.map(s => `
+              <tr data-id="${s.id}">
+                <td>${escapeHtml(s.email)}</td>
+                <td>${fmtDate(s.date)}</td>
+                <td><div class="admin-row-actions"><button class="danger delete-sub" title="Remove"><i class="fa-solid fa-trash"></i></button></div></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      wrap.querySelectorAll('.delete-sub').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.closest('tr').dataset.id;
+        confirmAction('Remove this subscriber?', () => {
+          DataStore.deleteItem('newsletterSubscribers', id);
+          data = DataStore.get();
+          Toast.success('Removed', 'Subscriber deleted.');
+          draw();
+        });
+      }));
+    }
+    draw();
+
+    document.getElementById('exportSubsBtn').addEventListener('click', () => {
+      const list = data.newsletterSubscribers || [];
+      if (!list.length) { Toast.error('Nothing to export', 'There are no subscribers yet.'); return; }
+      const csv = ['email,date', ...list.map(s => `${s.email},${s.date}`)].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'newsletter-subscribers.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      Toast.success('Exported', 'CSV file downloaded.');
     });
   }
 
@@ -576,6 +909,210 @@
     });
   }
 
+  /* ============================ DATA MANAGEMENT (Export / Import / Reset) ============================ */
+  function renderStorageUsageCard() {
+    const card = document.getElementById('storageUsageCard');
+    if (!card) return;
+    const usage = StorageUsage.breakdown();
+    const isWarning = usage.percent >= 70;
+    card.innerHTML = `
+      <h3><i class="fa-solid fa-database"></i> Storage Usage</h3>
+      <p style="color:var(--text-muted);font-size:var(--fs-sm)">Everything is stored in this browser's local storage, which has a limited quota (mostly used up by images uploaded through the admin panel).</p>
+      <div class="storage-meter-track"><div class="storage-meter-fill ${isWarning ? 'warning' : ''}" style="width:${usage.percent}%"></div></div>
+      <p style="font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-dim);margin-bottom:var(--sp-3)">
+        ${StorageUsage.formatBytes(usage.total)} used of an estimated ${StorageUsage.formatBytes(usage.quota)} typical quota (${usage.percent.toFixed(1)}%)
+      </p>
+      ${isWarning ? `<p style="color:var(--warning);font-size:var(--fs-xs);margin-bottom:var(--sp-3)"><i class="fa-solid fa-triangle-exclamation"></i> Getting close to the limit — consider removing unused gallery/project images, or exporting a backup and trimming older content.</p>` : ''}
+      <details>
+        <summary style="cursor:pointer;color:var(--accent);font-family:var(--font-mono);font-size:var(--fs-xs)">Show breakdown by item</summary>
+        <ul class="storage-breakdown-list" style="margin-top:var(--sp-3)">
+          ${usage.items.slice(0, 10).map(i => `<li><span>${escapeHtml(i.key)}</span><span>${StorageUsage.formatBytes(i.bytes)}</span></li>`).join('')}
+        </ul>
+      </details>
+    `;
+  }
+
+  function renderDataManagement(root) {
+    const counts = ['projects', 'skills', 'experience', 'education', 'certificates', 'gallery', 'services', 'clients', 'testimonials', 'pendingTestimonials', 'blog', 'faqs', 'messages', 'newsletterSubscribers'];
+    root.innerHTML = `
+      <div class="admin-panel-head"><div><h2>Data Management</h2><p>Back up, restore, or reset everything stored in this browser.</p></div></div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-chart-simple"></i> Current Data Summary</h3>
+        <div class="data-summary-grid">
+          ${counts.map(k => `<div><strong>${data[k].length}</strong>${k}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="admin-card card" id="storageUsageCard"></div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-download"></i> Export Backup</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">Downloads everything — profile, projects, skills, blog, messages, settings — as a single JSON file you can keep as a backup or move to another browser.</p>
+        <p style="color:var(--text-dim);font-size:var(--fs-xs);font-family:var(--font-mono);margin-bottom:var(--sp-3)">
+          ${BackupTracker.daysSinceLastExport() === null ? 'No backup exported yet.' : `Last backup: ${BackupTracker.daysSinceLastExport()} day(s) ago.`}
+        </p>
+        <div class="data-action-row">
+          <button class="btn btn-primary" id="exportBtn"><i class="fa-solid fa-file-export"></i> Export JSON Backup</button>
+        </div>
+      </div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-upload"></i> Import Backup</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">Restores content from a previously exported JSON file. This replaces everything currently stored in this browser.</p>
+        <div class="data-action-row">
+          <input type="file" accept="application/json" id="importFile" />
+          <button class="btn btn-outline" id="importBtn"><i class="fa-solid fa-file-import"></i> Import & Replace</button>
+        </div>
+      </div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-rss"></i> Blog RSS Feed</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">The site ships with a static <code>rss.xml</code> that lists your blog posts. It doesn't update itself — after adding, editing, or removing a post, generate a fresh copy here and re-upload it to your host (replacing the existing <code>rss.xml</code> file).</p>
+        <div class="data-action-row">
+          <button class="btn btn-outline" id="generateRssBtn"><i class="fa-solid fa-rss"></i> Generate rss.xml</button>
+        </div>
+      </div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-sitemap"></i> Sitemap</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">Same idea as the RSS feed — <code>sitemap.xml</code> is a static list of URLs for search engines. Regenerate it here (includes every blog post) and re-upload it after content changes.</p>
+        <div class="data-action-row">
+          <button class="btn btn-outline" id="generateSitemapBtn"><i class="fa-solid fa-sitemap"></i> Generate sitemap.xml</button>
+        </div>
+      </div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Reset to Defaults</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">Wipes everything in this browser and restores the original sample content. This cannot be undone — export a backup first if you want to keep your changes.</p>
+        <div class="data-action-row">
+          <button class="btn btn-outline" id="resetDataBtn" style="border-color:var(--danger);color:var(--danger)"><i class="fa-solid fa-rotate-left"></i> Reset All Data</button>
+        </div>
+      </div>
+    `;
+
+    renderStorageUsageCard();
+
+    document.getElementById('generateRssBtn').addEventListener('click', () => {
+      const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const base = 'https://shagarchandro.github.io/shagarchandro-Portfolio';
+      const items = (data.blog || []).map(p => `
+  <item>
+    <title>${esc(p.title)}</title>
+    <link>${base}/blog.html?post=${encodeURIComponent(p.slug || p.id)}</link>
+    <guid>${base}/blog.html?post=${encodeURIComponent(p.slug || p.id)}</guid>
+    <description>${esc(p.excerpt)}</description>
+    <pubDate>${new Date(p.date).toUTCString()}</pubDate>
+  </item>`).join('');
+      const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>${esc(data.siteSettings.siteTitle)} — Blog</title>
+  <link>${base}/index.html</link>
+  <description>Notes on frontend development, design and building this site.</description>
+  <language>en-us</language>${items}
+</channel>
+</rss>
+`;
+      const blob = new Blob([rss], { type: 'application/rss+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'rss.xml';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      Toast.success('Generated', 'rss.xml downloaded — upload it to replace the one on your host.');
+    });
+
+    document.getElementById('generateSitemapBtn').addEventListener('click', () => {
+      const base = 'https://shagarchandro.github.io/shagarchandro-Portfolio';
+      const staticUrls = [
+        { loc: `${base}/index.html`, freq: 'weekly', priority: '1.0' },
+        { loc: `${base}/resume.html`, freq: 'monthly', priority: '0.5' },
+        { loc: `${base}/privacy.html`, freq: 'yearly', priority: '0.3' }
+      ];
+      const blogUrls = (data.blog || []).map(p => ({
+        loc: `${base}/blog.html?post=${encodeURIComponent(p.slug || p.id)}`,
+        freq: 'monthly',
+        priority: '0.6'
+      }));
+      const all = [...staticUrls, ...blogUrls];
+      const body = all.map(u => `
+  <url>
+    <loc>${u.loc}</loc>
+    <changefreq>${u.freq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join('');
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}
+</urlset>
+`;
+      const blob = new Blob([xml], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      Toast.success('Generated', 'sitemap.xml downloaded — upload it to replace the one on your host.');
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `portfolio-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      BackupTracker.recordExport();
+      Toast.success('Exported', 'Backup file downloaded.');
+      renderDataManagement(document.getElementById('adminContent'));
+    });
+
+    document.getElementById('importBtn').addEventListener('click', () => {
+      const fileInput = document.getElementById('importFile');
+      const file = fileInput.files[0];
+      if (!file) { Toast.error('No file selected', 'Choose a JSON backup file first.'); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          // Basic shape check so a random JSON file doesn't silently corrupt the store.
+          const requiredKeys = ['profile', 'hero', 'projects', 'skills'];
+          const looksValid = requiredKeys.every(k => k in parsed);
+          if (!looksValid) throw new Error('Missing expected sections');
+          confirmAction('Import this backup and replace all current data?', () => {
+            DataStore.set(parsed);
+            data = DataStore.get();
+            Toast.success('Imported', 'Data restored from backup.');
+            renderDataManagement(document.getElementById('adminContent'));
+            updateMsgBadge();
+          });
+        } catch (err) {
+          Toast.error('Invalid file', "That doesn't look like a valid portfolio backup file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('resetDataBtn').addEventListener('click', () => {
+      confirmAction('Reset ALL data to the original defaults? This cannot be undone.', () => {
+        data = DataStore.reset();
+        Toast.success('Reset complete', 'All data restored to defaults.');
+        renderDataManagement(document.getElementById('adminContent'));
+        updateMsgBadge();
+      });
+    });
+  }
+
   /* ============================ SECURITY ============================ */
   function renderSecurity(root) {
     const auth = AuthStore.get();
@@ -584,9 +1121,18 @@
       <form id="passForm" class="admin-card card">
         <h3>Change Password</h3>
         <div class="admin-form-grid">
-          <div class="field"><label>New Password</label><input type="password" name="newPass" minlength="6" required /></div>
-          <div class="field"><label>Confirm New Password</label><input type="password" name="confirmPass" minlength="6" required /></div>
+          <div class="field full"><label>Current Password</label><input type="password" name="currentPass" autocomplete="current-password" required /></div>
+          <div class="field">
+            <label>New Password</label>
+            <input type="password" name="newPass" id="newPassInput" minlength="8" autocomplete="new-password" required />
+            <div class="pass-strength" id="passStrengthMeter">
+              <div class="pass-strength-track"><div class="pass-strength-fill" id="passStrengthFill"></div></div>
+              <span class="pass-strength-label" id="passStrengthLabel"></span>
+            </div>
+          </div>
+          <div class="field"><label>Confirm New Password</label><input type="password" name="confirmPass" autocomplete="new-password" required /></div>
         </div>
+        <p style="color:var(--text-dim);font-size:var(--fs-xs);margin-bottom:var(--sp-4)"><i class="fa-solid fa-circle-info"></i> Use at least 8 characters, mixing uppercase, lowercase, numbers and symbols for a stronger password.</p>
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-key"></i> Update Password</button>
       </form>
       <form id="sessionForm" class="admin-card card">
@@ -595,15 +1141,100 @@
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-clock"></i> Save Session Settings</button>
       </form>
       <button class="btn btn-outline" id="securityLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout Now</button>
+
+      <form id="usernameForm" class="admin-card card">
+        <h3>Change Username</h3>
+        <div class="admin-form-grid">
+          <div class="field"><label>New Username</label><input type="text" name="newUsername" value="${escapeHtml(auth.username)}" required /></div>
+          <div class="field"><label>Current Password (to confirm)</label><input type="password" name="confirmPass" autocomplete="current-password" required /></div>
+        </div>
+        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-user-pen"></i> Update Username</button>
+      </form>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-key"></i> Account Recovery Key</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">
+          There's no email or backend here, so a forgotten password normally means permanent lockout. A recovery
+          key fixes that: generate one, save it somewhere safe (a password manager, not this browser), and use it
+          on the login screen's "Forgot password?" link if you're ever locked out. Generating a new key
+          invalidates any previous one.
+        </p>
+        <p style="font-family:var(--font-mono);font-size:var(--fs-xs);color:${AuthStore.hasRecoveryKey() ? 'var(--success)' : 'var(--text-dim)'};margin-bottom:var(--sp-4)">
+          <i class="fa-solid ${AuthStore.hasRecoveryKey() ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+          ${AuthStore.hasRecoveryKey() ? 'A recovery key is currently set.' : 'No recovery key set yet.'}
+        </p>
+        <div id="recoveryKeyDisplay"></div>
+        <button class="btn btn-outline" id="generateRecoveryBtn"><i class="fa-solid fa-key"></i> ${AuthStore.hasRecoveryKey() ? 'Regenerate' : 'Generate'} Recovery Key</button>
+      </div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Login Activity</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">
+          A local record of logins in this browser, so a login you don't recognize stands out. Since this whole
+          panel runs without a server, treat it as a convenience log rather than real intrusion protection —
+          anyone with access to this browser could clear it.
+        </p>
+        <div id="loginActivityList"></div>
+      </div>
     `;
+    const activity = SecurityLog.list();
+    document.getElementById('loginActivityList').innerHTML = activity.length
+      ? `<ul class="analytics-list">${activity.map(a => `<li><span>${escapeHtml(a.browser)} · ${escapeHtml(a.platform)}</span><span style="font-family:var(--font-mono);color:var(--text-dim)">${fmtDate(a.date)}</span></li>`).join('')}</ul>`
+      : `<div class="admin-empty"><i class="fa-solid fa-clock-rotate-left"></i>No login activity recorded yet.</div>`;
+    function passwordStrength(pwd) {
+      let score = 0;
+      if (pwd.length >= 8) score++;
+      if (pwd.length >= 12) score++;
+      if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+      if (/\d/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+      // score: 0-5 -> level 0-4 (Weak..Very Strong)
+      const levels = [
+        { label: 'Too short', pct: 10, color: 'var(--danger)' },
+        { label: 'Weak', pct: 30, color: 'var(--danger)' },
+        { label: 'Fair', pct: 55, color: 'var(--warning)' },
+        { label: 'Good', pct: 75, color: 'var(--accent-2)' },
+        { label: 'Strong', pct: 100, color: 'var(--success)' }
+      ];
+      const idx = pwd.length === 0 ? -1 : Math.min(score, 4);
+      return idx === -1 ? null : levels[idx];
+    }
+
+    const newPassInput = document.getElementById('newPassInput');
+    newPassInput.addEventListener('input', () => {
+      const s = passwordStrength(newPassInput.value);
+      const fill = document.getElementById('passStrengthFill');
+      const label = document.getElementById('passStrengthLabel');
+      if (!s) { fill.style.width = '0%'; label.textContent = ''; return; }
+      fill.style.width = s.pct + '%';
+      fill.style.background = s.color;
+      label.textContent = s.label;
+      label.style.color = s.color;
+    });
+
     document.getElementById('passForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
+      const current = fd.get('currentPass');
       const p1 = fd.get('newPass'), p2 = fd.get('confirmPass');
+
+      const auth = AuthStore.get();
+      const currentOk = await AuthStore.verify(auth.username, current);
+      if (!currentOk) { Toast.error('Incorrect password', 'Your current password was not entered correctly.'); return; }
+
       if (p1 !== p2) { Toast.error('Passwords do not match', 'Please re-enter matching passwords.'); return; }
+
+      const strength = passwordStrength(p1);
+      if (!strength || strength.label === 'Too short' || strength.label === 'Weak') {
+        Toast.error('Password too weak', 'Use at least 8 characters with a mix of letters, numbers and symbols.');
+        return;
+      }
+
       await AuthStore.changePassword(p1);
       Toast.success('Password updated', 'Use your new password next time you log in.');
       e.target.reset();
+      document.getElementById('passStrengthFill').style.width = '0%';
+      document.getElementById('passStrengthLabel').textContent = '';
     });
     document.getElementById('sessionForm').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -616,6 +1247,31 @@
     document.getElementById('securityLogoutBtn').addEventListener('click', () => {
       AuthStore.logout();
       location.reload();
+    });
+
+    document.getElementById('usernameForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const newUsername = fd.get('newUsername').trim();
+      const confirmPass = fd.get('confirmPass');
+      if (!newUsername) { Toast.error('Username required', 'Please enter a username.'); return; }
+      const currentAuth = AuthStore.get();
+      const ok = await AuthStore.verify(currentAuth.username, confirmPass);
+      if (!ok) { Toast.error('Incorrect password', 'Please confirm with your current password.'); return; }
+      await AuthStore.changeUsername(newUsername);
+      Toast.success('Username updated', `You'll log in as "${newUsername}" next time.`);
+      e.target.querySelector('input[name="confirmPass"]').value = '';
+    });
+
+    document.getElementById('generateRecoveryBtn').addEventListener('click', () => {
+      confirmAction('Generate a new recovery key? Any previous key will stop working.', async () => {
+        const key = await AuthStore.generateRecoveryKey();
+        document.getElementById('recoveryKeyDisplay').innerHTML = `
+          <div class="recovery-key-box">${key}</div>
+          <p style="color:var(--danger);font-size:var(--fs-xs);margin-bottom:var(--sp-4)"><i class="fa-solid fa-triangle-exclamation"></i> Save this now — it will not be shown again. Anyone with this key can reset your password.</p>
+        `;
+        Toast.success('Recovery key generated', 'Copy it somewhere safe right now.');
+      });
     });
   }
 
@@ -635,7 +1291,7 @@
 
   /* ============================ GENERIC CRUD ENGINE ============================ */
   const skillsConfig = {
-    label: 'Skill', labelPlural: 'Skills',
+    label: 'Skill', labelPlural: 'Skills', reorderable: true,
     fields: [
       { key: 'name', label: 'Skill Name', type: 'text', required: true },
       { key: 'percentage', label: 'Percentage (0-100)', type: 'number', min: 0, max: 100, required: true },
@@ -649,7 +1305,7 @@
   };
 
   const projectsConfig = {
-    label: 'Project', labelPlural: 'Projects',
+    label: 'Project', labelPlural: 'Projects', reorderable: true,
     fields: [
       { key: 'title', label: 'Title', type: 'text', required: true },
       { key: 'category', label: 'Category', type: 'text', required: true },
@@ -666,7 +1322,7 @@
   };
 
   const experienceConfig = {
-    label: 'Experience', labelPlural: 'Experience',
+    label: 'Experience', labelPlural: 'Experience', reorderable: true,
     fields: [
       { key: 'role', label: 'Role', type: 'text', required: true },
       { key: 'company', label: 'Company', type: 'text', required: true },
@@ -677,7 +1333,7 @@
   };
 
   const educationConfig = {
-    label: 'Education', labelPlural: 'Education',
+    label: 'Education', labelPlural: 'Education', reorderable: true,
     fields: [
       { key: 'degree', label: 'Degree', type: 'text', required: true },
       { key: 'institute', label: 'Institute', type: 'text', required: true },
@@ -688,7 +1344,7 @@
   };
 
   const certificatesConfig = {
-    label: 'Certificate', labelPlural: 'Certificates',
+    label: 'Certificate', labelPlural: 'Certificates', reorderable: true,
     fields: [
       { key: 'title', label: 'Title', type: 'text', required: true },
       { key: 'issuer', label: 'Issuer', type: 'text', required: true },
@@ -700,7 +1356,7 @@
   };
 
   const galleryConfig = {
-    label: 'Image', labelPlural: 'Gallery',
+    label: 'Image', labelPlural: 'Gallery', reorderable: true,
     fields: [
       { key: 'image', label: 'Image', type: 'image', required: true },
       { key: 'caption', label: 'Caption', type: 'text', required: true }
@@ -709,7 +1365,7 @@
   };
 
   const servicesConfig = {
-    label: 'Service', labelPlural: 'Services',
+    label: 'Service', labelPlural: 'Services', reorderable: true,
     fields: [
       { key: 'title', label: 'Title', type: 'text', required: true },
       { key: 'description', label: 'Description', type: 'textarea', required: true },
@@ -721,8 +1377,20 @@
     ]
   };
 
+  const clientsConfig = {
+    label: 'Client', labelPlural: 'Clients', reorderable: true,
+    fields: [
+      { key: 'name', label: 'Client / Company Name', type: 'text', required: true },
+      { key: 'logo', label: 'Logo', type: 'image', required: true }
+    ],
+    columns: [
+      { key: 'logo', label: '', type: 'image' },
+      { key: 'name', label: 'Name' }
+    ]
+  };
+
   const testimonialsConfig = {
-    label: 'Testimonial', labelPlural: 'Testimonials',
+    label: 'Testimonial', labelPlural: 'Testimonials', reorderable: true,
     fields: [
       { key: 'name', label: 'Name', type: 'text', required: true },
       { key: 'role', label: 'Role / Company', type: 'text', required: true },
@@ -733,28 +1401,100 @@
     columns: [{ key: 'photo', label: '', type: 'image' }, { key: 'name', label: 'Name' }, { key: 'role', label: 'Role' }, { key: 'rating', label: 'Rating', render: v => '★'.repeat(v) }]
   };
 
+  const blogConfig = {
+    label: 'Post', labelPlural: 'Blog Posts', reorderable: false,
+    fields: [
+      { key: 'title', label: 'Title', type: 'text', required: true },
+      { key: 'slug', label: 'Slug (used in the URL, e.g. my-first-post)', type: 'text', required: true, placeholder: 'my-first-post' },
+      { key: 'date', label: 'Date', type: 'text', required: true, placeholder: 'YYYY-MM-DD' },
+      { key: 'tags', label: 'Tags (comma separated)', type: 'text', placeholder: 'JavaScript, CSS' },
+      { key: 'cover', label: 'Cover Image', type: 'image' },
+      { key: 'excerpt', label: 'Excerpt (short summary shown on the card)', type: 'textarea', required: true },
+      { key: 'content', label: 'Full Content (blank lines start a new paragraph)', type: 'textarea', required: true }
+    ],
+    columns: [
+      { key: 'cover', label: '', type: 'image' },
+      { key: 'title', label: 'Title' },
+      { key: 'date', label: 'Date' },
+      { key: 'slug', label: 'Slug', render: v => `<span style="font-family:var(--font-mono);color:var(--text-dim)">/${escapeHtml(v)}</span>` }
+    ]
+  };
+
+  const faqsConfig = {
+    label: 'Question', labelPlural: 'FAQ', reorderable: true,
+    fields: [
+      { key: 'question', label: 'Question', type: 'text', required: true },
+      { key: 'answer', label: 'Answer', type: 'textarea', required: true }
+    ],
+    columns: [{ key: 'question', label: 'Question' }]
+  };
+
   function renderCrud(sectionKey, config) {
     const root = document.getElementById('adminContent');
     root.innerHTML = `
       <div class="admin-panel-head">
-        <div><h2>${config.labelPlural}</h2><p>${data[sectionKey].length} item(s)</p></div>
+        <div><h2>${config.labelPlural}</h2><p>${data[sectionKey].length} item(s)${config.reorderable ? ' · drag the ⠿ handle to reorder' : ''}</p></div>
         <button class="btn btn-primary" id="addItemBtn"><i class="fa-solid fa-plus"></i> Add ${config.label}</button>
+      </div>
+      <div class="admin-toolbar">
+        <div class="admin-search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="crudSearchInput" placeholder="Search ${config.labelPlural.toLowerCase()}..." />
+        </div>
+        <div class="admin-bulk-bar" id="bulkBar" hidden>
+          <span id="bulkCount"></span>
+          <button class="btn btn-outline btn-sm" id="bulkDeleteBtn" style="border-color:var(--danger);color:var(--danger)"><i class="fa-solid fa-trash"></i> Delete Selected</button>
+          <button class="btn btn-ghost btn-sm" id="bulkClearBtn">Clear</button>
+        </div>
       </div>
       <div class="admin-table-wrap card" id="crudTableWrap"></div>
     `;
+
+    let query = '';
+    let selected = new Set();
+
+    function matchesQuery(item) {
+      if (!query) return true;
+      const haystack = config.columns.map(c => item[c.key]).concat(Object.values(item)).join(' ').toLowerCase();
+      return haystack.includes(query.toLowerCase());
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulkBar');
+      const count = document.getElementById('bulkCount');
+      bar.hidden = selected.size === 0;
+      count.textContent = `${selected.size} selected`;
+    }
+
     function draw() {
-      const items = data[sectionKey];
+      const allItems = data[sectionKey];
+      const items = allItems.filter(matchesQuery);
       const wrap = document.getElementById('crudTableWrap');
-      if (!items.length) {
+      const filtering = query.length > 0;
+
+      if (!allItems.length) {
         wrap.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-folder-open"></i>No ${config.labelPlural.toLowerCase()} yet. Click "Add ${config.label}" to create one.</div>`;
         return;
       }
+      if (!items.length) {
+        wrap.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-magnifying-glass"></i>No ${config.labelPlural.toLowerCase()} match "${escapeHtml(query)}".</div>`;
+        return;
+      }
+
+      const canReorder = config.reorderable && !filtering;
       wrap.innerHTML = `
         <table class="admin-table">
-          <thead><tr>${config.columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th style="text-align:right">Actions</th></tr></thead>
+          <thead><tr>
+            <th style="width:32px"><input type="checkbox" id="selectAllBox" aria-label="Select all" /></th>
+            ${canReorder ? '<th style="width:36px"></th>' : ''}
+            ${config.columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}
+            <th style="text-align:right">Actions</th>
+          </tr></thead>
           <tbody>
             ${items.map(item => `
-              <tr data-id="${item.id}">
+              <tr data-id="${item.id}" ${canReorder ? 'draggable="true"' : ''}>
+                <td><input type="checkbox" class="row-select" data-id="${item.id}" ${selected.has(item.id) ? 'checked' : ''} aria-label="Select row" /></td>
+                ${canReorder ? '<td class="drag-handle" title="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></td>' : ''}
                 ${config.columns.map(c => {
                   const val = item[c.key];
                   if (c.type === 'image') return `<td><img class="admin-thumb" src="${resolveAssetPath(val) || ''}" alt="" /></td>`;
@@ -763,6 +1503,7 @@
                 }).join('')}
                 <td>
                   <div class="admin-row-actions">
+                    <button class="duplicate-item" title="Duplicate"><i class="fa-solid fa-copy"></i></button>
                     <button class="edit-item" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button class="danger delete-item" title="Delete"><i class="fa-solid fa-trash"></i></button>
                   </div>
@@ -772,23 +1513,118 @@
           </tbody>
         </table>
       `;
+
       wrap.querySelectorAll('.edit-item').forEach(btn => btn.addEventListener('click', () => {
         const id = btn.closest('tr').dataset.id;
-        openCrudModal(sectionKey, config, items.find(i => i.id === id), draw);
+        openCrudModal(sectionKey, config, allItems.find(i => i.id === id), draw);
       }));
       wrap.querySelectorAll('.delete-item').forEach(btn => btn.addEventListener('click', () => {
         const id = btn.closest('tr').dataset.id;
         confirmAction(`Delete this ${config.label.toLowerCase()}? This cannot be undone.`, () => {
           DataStore.deleteItem(sectionKey, id);
           data = DataStore.get();
+          selected.delete(id);
           Toast.success('Deleted', `${config.label} removed.`);
           draw();
+          updateBulkBar();
           updateMsgBadge();
         });
       }));
+      wrap.querySelectorAll('.duplicate-item').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.closest('tr').dataset.id;
+        const original = allItems.find(i => i.id === id);
+        if (!original) return;
+        const clone = { ...original };
+        delete clone.id;
+        // Give an obvious "(Copy)" marker on whichever field the table shows first as a title-like column.
+        const titleKey = (config.columns.find(c => !c.type && !c.render) || {}).key;
+        if (titleKey && typeof clone[titleKey] === 'string') clone[titleKey] = `${clone[titleKey]} (Copy)`;
+        DataStore.addItem(sectionKey, clone);
+        data = DataStore.get();
+        Toast.success('Duplicated', `${config.label} duplicated — edit the copy to make changes.`);
+        draw();
+      }));
+
+      wrap.querySelectorAll('.row-select').forEach(box => box.addEventListener('change', () => {
+        const id = box.dataset.id;
+        if (box.checked) selected.add(id); else selected.delete(id);
+        updateBulkBar();
+        const allBox = document.getElementById('selectAllBox');
+        if (allBox) allBox.checked = items.every(i => selected.has(i.id));
+      }));
+      const selectAllBox = document.getElementById('selectAllBox');
+      if (selectAllBox) {
+        selectAllBox.checked = items.length > 0 && items.every(i => selected.has(i.id));
+        selectAllBox.addEventListener('change', () => {
+          if (selectAllBox.checked) items.forEach(i => selected.add(i.id));
+          else items.forEach(i => selected.delete(i.id));
+          draw();
+          updateBulkBar();
+        });
+      }
+
+      if (canReorder) bindRowDragReorder(wrap, sectionKey, draw);
+      updateBulkBar();
     }
+
     draw();
     document.getElementById('addItemBtn').addEventListener('click', () => openCrudModal(sectionKey, config, null, draw));
+
+    document.getElementById('crudSearchInput').addEventListener('input', (e) => {
+      query = e.target.value.trim();
+      draw();
+    });
+
+    document.getElementById('bulkClearBtn').addEventListener('click', () => {
+      selected.clear();
+      draw();
+    });
+    document.getElementById('bulkDeleteBtn').addEventListener('click', () => {
+      const count = selected.size;
+      confirmAction(`Delete ${count} selected ${count === 1 ? config.label.toLowerCase() : config.labelPlural.toLowerCase()}? This cannot be undone.`, () => {
+        selected.forEach(id => DataStore.deleteItem(sectionKey, id));
+        data = DataStore.get();
+        Toast.success('Deleted', `${count} item(s) removed.`);
+        selected.clear();
+        draw();
+        updateMsgBadge();
+      });
+    });
+  }
+
+  /* Native HTML5 drag-and-drop row reordering for CRUD tables. On drop, the
+     new visual order of <tr> ids is read back and saved as the section's
+     new array order — the public site then renders in that same order. */
+  function bindRowDragReorder(wrap, sectionKey, onReordered) {
+    const tbody = wrap.querySelector('tbody');
+    let draggedRow = null;
+
+    tbody.querySelectorAll('tr').forEach(row => {
+      row.addEventListener('dragstart', (e) => {
+        // Don't start a row-drag when the user is interacting with a checkbox/button in the row.
+        if (e.target.closest('input, button')) { e.preventDefault(); return; }
+        draggedRow = row;
+        row.classList.add('dragging');
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        draggedRow = null;
+        const newOrderIds = [...tbody.querySelectorAll('tr')].map(r => r.dataset.id);
+        const items = data[sectionKey];
+        const reordered = newOrderIds.map(id => items.find(i => i.id === id)).filter(Boolean);
+        if (reordered.length === items.length) {
+          DataStore.update(sectionKey, reordered);
+          data = DataStore.get();
+        }
+      });
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!draggedRow || draggedRow === row) return;
+        const rect = row.getBoundingClientRect();
+        const before = (e.clientY - rect.top) < rect.height / 2;
+        row.parentNode.insertBefore(draggedRow, before ? row : row.nextSibling);
+      });
+    });
   }
 
   function openCrudModal(sectionKey, config, existingItem, onDone) {

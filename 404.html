@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Page Not Found — Shagar Chandro</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/svg+xml" href="assets/images/profile/favicon.svg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/components.css" />
+<link rel="stylesheet" href="css/animations.css" />
+
+<style>
+  body { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: var(--sp-5); position: relative; overflow: hidden; }
+  .error-code {
+    font-family: var(--font-mono);
+    font-size: clamp(4rem, 16vw, 9rem);
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: var(--sp-4);
+  }
+  .error-terminal {
+    max-width: 480px;
+    margin: 0 auto var(--sp-6);
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--sp-5);
+    color: var(--text-muted);
+  }
+  .error-terminal .tok-key { color: #f57ec2; }
+  .error-terminal .tok-str { color: var(--accent); }
+  .error-actions { display: flex; gap: var(--sp-3); justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<span class="glow-orb float" style="position:absolute;top:-10%;left:-10%;width:480px;height:480px;border-radius:50%;filter:blur(120px);opacity:0.22;background:var(--accent);z-index:0"></span>
+<span class="glow-orb float" style="position:absolute;bottom:-10%;right:-10%;width:480px;height:480px;border-radius:50%;filter:blur(120px);opacity:0.22;background:var(--accent-2);z-index:0;animation-delay:1.5s"></span>
+
+<div style="position:relative;z-index:1">
+  <div class="error-code">404</div>
+  <div class="error-terminal">
+    <span class="tok-key">throw</span> <span class="tok-key">new</span> Error(<span class="tok-str">'Page not found'</span>);<br />
+    <span style="color:var(--text-dim)">// the page you're looking for doesn't exist, or moved.</span>
+  </div>
+  <div class="error-actions">
+    <a href="index.html" class="btn btn-primary"><i class="fa-solid fa-house"></i> Back to Home</a>
+    <a href="index.html#projects" class="btn btn-outline"><i class="fa-solid fa-diagram-project"></i> View Projects</a>
+    <a href="index.html#contact" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> Contact</a>
+  </div>
+</div>
+
+<script>
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+</script>
+</body>
+</html>

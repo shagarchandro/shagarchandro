@@ -14,10 +14,32 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Shagar Chandro — Frontend Developer" />
 <meta property="og:description" content="Clean, responsive, and accessible web experiences built with HTML, CSS, JavaScript and React." />
-<meta property="og:image" content="assets/images/profile/profile.svg" />
+<meta property="og:image" content="assets/images/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="assets/images/og-image.png" />
 
 <link rel="icon" type="image/svg+xml" id="favicon-link" href="assets/images/profile/favicon.svg" />
+<link rel="apple-touch-icon" href="assets/images/profile/favicon.svg" />
+<link rel="manifest" href="manifest.json" />
+<link rel="alternate" type="application/rss+xml" title="Blog RSS Feed" href="rss.xml" />
+<meta name="theme-color" content="#0b0f17" />
+
+<!-- Structured data for richer search results -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Shagar Chandro",
+  "jobTitle": "Frontend Developer",
+  "url": "https://shagarchandro.github.io/shagarchandro-Portfolio/",
+  "sameAs": [
+    "https://github.com/shagarchandro",
+    "https://www.linkedin.com/in/shagar-chandro-26a58121b/"
+  ]
+}
+</script>
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,8 +56,13 @@
 <link rel="stylesheet" href="css/sections.css" />
 <link rel="stylesheet" href="css/animations.css" />
 <link rel="stylesheet" href="css/responsive.css" />
+<link rel="stylesheet" href="css/premium.css" />
 </head>
 <body>
+
+<!-- Custom cursor (desktop / fine-pointer devices only; JS adds body.has-custom-cursor) -->
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
 <a href="#main" class="skip-link">Skip to main content</a>
 
@@ -64,16 +91,25 @@
     </a>
 
     <ul class="nav-list" id="navList">
-      <li><a href="#home" class="active" data-nav>Home</a></li>
-      <li><a href="#about" data-nav>About</a></li>
-      <li><a href="#skills" data-nav>Skills</a></li>
-      <li><a href="#projects" data-nav>Projects</a></li>
-      <li><a href="#experience" data-nav>Experience</a></li>
-      <li><a href="#certificates" data-nav>Certificates</a></li>
-      <li><a href="#contact" data-nav>Contact</a></li>
+      <li><a href="#home" class="active" data-nav data-i18n="nav.home">Home</a></li>
+      <li><a href="#about" data-nav data-i18n="nav.about">About</a></li>
+      <li><a href="#skills" data-nav data-i18n="nav.skills">Skills</a></li>
+      <li><a href="#projects" data-nav data-i18n="nav.projects">Projects</a></li>
+      <li><a href="#blog" data-nav data-i18n="nav.blog">Blog</a></li>
+      <li><a href="#experience" data-nav data-i18n="nav.experience">Experience</a></li>
+      <li><a href="#certificates" data-nav data-i18n="nav.certificates">Certificates</a></li>
+      <li><a href="#contact" data-nav data-i18n="nav.contact">Contact</a></li>
     </ul>
 
     <div class="nav-actions">
+      <button class="cmdk-trigger" id="cmdkTrigger" type="button" aria-label="Open command palette">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <span class="cmdk-trigger-label" data-i18n="cmdk.searchLabel">Search</span>
+        <kbd>Ctrl K</kbd>
+      </button>
+      <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language">
+        <span id="langToggleLabel">বাং</span>
+      </button>
       <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark and light mode">
         <i class="fa-solid fa-moon" aria-hidden="true"></i>
         <i class="fa-solid fa-sun" aria-hidden="true"></i>
@@ -88,17 +124,19 @@
 <div class="nav-overlay" id="navOverlay"></div>
 <aside class="nav-drawer" id="navDrawer" aria-label="Mobile navigation">
   <ul class="nav-list">
-    <li><a href="#home" data-nav>Home</a></li>
-    <li><a href="#about" data-nav>About</a></li>
-    <li><a href="#skills" data-nav>Skills</a></li>
-    <li><a href="#projects" data-nav>Projects</a></li>
-    <li><a href="#experience" data-nav>Experience</a></li>
-    <li><a href="#certificates" data-nav>Certificates</a></li>
-    <li><a href="#gallery" data-nav>Gallery</a></li>
-    <li><a href="#services" data-nav>Services</a></li>
-    <li><a href="#contact" data-nav>Contact</a></li>
+    <li><a href="#home" data-nav data-i18n="nav.home">Home</a></li>
+    <li><a href="#about" data-nav data-i18n="nav.about">About</a></li>
+    <li><a href="#skills" data-nav data-i18n="nav.skills">Skills</a></li>
+    <li><a href="#projects" data-nav data-i18n="nav.projects">Projects</a></li>
+    <li><a href="#blog" data-nav data-i18n="nav.blog">Blog</a></li>
+    <li><a href="#experience" data-nav data-i18n="nav.experience">Experience</a></li>
+    <li><a href="#certificates" data-nav data-i18n="nav.certificates">Certificates</a></li>
+    <li><a href="#gallery" data-nav data-i18n="nav.gallery">Gallery</a></li>
+    <li><a href="#services" data-nav data-i18n="nav.services">Services</a></li>
+    <li><a href="#faq" data-nav data-i18n="nav.faq">FAQ</a></li>
+    <li><a href="#contact" data-nav data-i18n="nav.contact">Contact</a></li>
   </ul>
-  <a href="#contact" class="btn btn-primary btn-block" data-nav>Let's Talk</a>
+  <a href="#contact" class="btn btn-primary btn-block" data-nav data-i18n="nav.letsTalk">Let's Talk</a>
 </aside>
 
 <main id="main">
@@ -109,15 +147,19 @@
     <span class="glow-orb g2"></span>
     <div class="container hero-grid">
       <div class="hero-copy reveal in-view">
-        <p class="hero-kicker"><span class="tok-var">const</span>&nbsp;status&nbsp;=&nbsp;"available_for_work"<span class="blink">_</span></p>
+        <p class="hero-kicker"><span data-i18n="hero.status"><span class="tok-var">const</span>&nbsp;status&nbsp;=&nbsp;"available_for_work"</span><span class="blink">_</span></p>
         <h1 class="hero-title">Hi, I'm <span class="text-gradient" id="heroName">Shagar Chandro</span></h1>
         <p class="hero-role" id="heroRole"></p>
         <p class="hero-desc" id="heroDesc"></p>
         <div class="hero-cta">
-          <a href="#projects" class="btn btn-primary" data-nav><i class="fa-solid fa-diagram-project"></i> View Projects</a>
-          <a id="resumeLink" href="assets/Resume-of-Shagar-Chandro.pdf" download class="btn btn-outline"><i class="fa-solid fa-download"></i> Download CV</a>
+          <a href="#projects" class="btn btn-primary magnetic" data-nav><i class="fa-solid fa-diagram-project"></i> <span data-i18n="hero.viewProjects">View Projects</span></a>
+          <a id="resumeLink" href="assets/Resume-of-Shagar-Chandro.pdf" download class="btn btn-outline magnetic"><i class="fa-solid fa-download"></i> <span data-i18n="hero.downloadCV">Download CV</span></a>
         </div>
         <div class="hero-socials" id="heroSocials"></div>
+        <div class="now-badge" id="nowBadge" hidden>
+          <span class="now-dot"></span>
+          <span data-i18n="hero.now">Currently</span>:&nbsp;<span id="nowText"></span>
+        </div>
       </div>
 
       <div class="hero-visual reveal in-view">
@@ -151,16 +193,16 @@
           <div class="about-photo-badge"><strong id="aboutExpBadge">1+</strong>Years<br />Experience</div>
         </div>
         <div class="reveal">
-          <p class="eyebrow"><i class="fa-solid fa-user" aria-hidden="true"></i> About Me</p>
-          <h2 class="section-title">Building interfaces people <span class="accent-text">enjoy using</span>.</h2>
+          <p class="eyebrow"><i class="fa-solid fa-user" aria-hidden="true"></i> <span data-i18n="about.eyebrow">About Me</span></p>
+          <h2 class="section-title" data-i18n="about.titleHtml">Building interfaces people <span class="accent-text">enjoy using</span>.</h2>
           <p class="about-text" id="aboutText"></p>
           <div class="about-meta">
-            <div class="about-meta-item"><span class="label">EXPERIENCE</span><span id="aboutExpSummary"></span></div>
-            <div class="about-meta-item"><span class="label">EDUCATION</span><span id="aboutEduSummary"></span></div>
-            <div class="about-meta-item"><span class="label">EMAIL</span><span id="aboutEmail"></span></div>
-            <div class="about-meta-item"><span class="label">LOCATION</span><span id="aboutLocation"></span></div>
+            <div class="about-meta-item"><span class="label" data-i18n="about.experience">EXPERIENCE</span><span id="aboutExpSummary"></span></div>
+            <div class="about-meta-item"><span class="label" data-i18n="about.education">EDUCATION</span><span id="aboutEduSummary"></span></div>
+            <div class="about-meta-item"><span class="label" data-i18n="about.email">EMAIL</span><span id="aboutEmail"></span></div>
+            <div class="about-meta-item"><span class="label" data-i18n="about.location">LOCATION</span><span id="aboutLocation"></span></div>
           </div>
-          <a href="#contact" class="btn btn-primary" data-nav><i class="fa-solid fa-paper-plane"></i> Get In Touch</a>
+          <a href="#contact" class="btn btn-primary" data-nav><i class="fa-solid fa-paper-plane"></i> <span data-i18n="about.getInTouch">Get In Touch</span></a>
           <div class="about-stats" id="aboutStats"></div>
         </div>
       </div>
@@ -171,11 +213,43 @@
   <section class="section" id="skills">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-code" aria-hidden="true"></i> Skills</p>
-        <h2 class="section-title">My <span class="accent-text">Tech Stack</span></h2>
-        <p class="section-desc">Tools and technologies I use to bring ideas to life.</p>
+        <p class="eyebrow"><i class="fa-solid fa-code" aria-hidden="true"></i> <span data-i18n="skills.eyebrow">Skills</span></p>
+        <h2 class="section-title" data-i18n="skills.titleHtml">My <span class="accent-text">Tech Stack</span></h2>
+        <p class="section-desc" data-i18n="skills.desc">Tools and technologies I use to bring ideas to life.</p>
       </div>
       <div class="skills-grid" id="skillsGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===== GITHUB ACTIVITY ===== -->
+  <section class="section" id="github" style="padding-top:0">
+    <div class="container section-inner">
+      <div class="github-card card" id="githubCard" hidden>
+        <div class="github-card-head">
+          <img id="githubAvatar" src="" alt="" class="github-avatar" data-shimmer />
+          <div>
+            <a id="githubUserLink" href="#" target="_blank" rel="noopener noreferrer" class="github-username"></a>
+            <p id="githubBio" class="github-bio"></p>
+          </div>
+          <a id="githubFollowBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm magnetic"><i class="fa-brands fa-github"></i> Follow</a>
+        </div>
+        <div class="github-stats-row" id="githubStatsRow"></div>
+        <div class="github-chart-wrap">
+          <img id="githubChart" src="" alt="GitHub contribution activity" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CLIENTS / WORKED WITH ===== -->
+  <section class="clients-strip" id="clients">
+    <div class="container">
+      <div class="clients-divider"></div>
+      <div style="text-align:center">
+        <p class="eyebrow"><i class="fa-solid fa-handshake" aria-hidden="true"></i> <span data-i18n="clients.eyebrow">Worked With</span></p>
+      </div>
+      <div class="clients-track" id="clientsTrack"></div>
+      <div class="clients-divider"></div>
     </div>
   </section>
 
@@ -183,12 +257,24 @@
   <section class="section" id="projects">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i> Portfolio</p>
-        <h2 class="section-title">Featured <span class="accent-text">Projects</span></h2>
-        <p class="section-desc">A selection of things I've designed, built and shipped.</p>
+        <p class="eyebrow"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i> <span data-i18n="projects.eyebrow">Portfolio</span></p>
+        <h2 class="section-title" data-i18n="projects.titleHtml">Featured <span class="accent-text">Projects</span></h2>
+        <p class="section-desc" data-i18n="projects.desc">A selection of things I've designed, built and shipped.</p>
       </div>
       <div class="project-filters" id="projectFilters"></div>
       <div class="projects-grid" id="projectsGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===== BLOG ===== -->
+  <section class="section" id="blog">
+    <div class="container section-inner">
+      <div class="section-head">
+        <p class="eyebrow"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i> <span data-i18n="blog.eyebrow">Writing</span></p>
+        <h2 class="section-title" data-i18n="blog.titleHtml">From the <span class="accent-text">Blog</span></h2>
+        <p class="section-desc" data-i18n="blog.desc">Notes on frontend development, design and building this very site.</p>
+      </div>
+      <div class="blog-grid" id="blogGrid"></div>
     </div>
   </section>
 
@@ -196,9 +282,9 @@
   <section class="section" id="services">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Services</p>
-        <h2 class="section-title">What I Can <span class="accent-text">Do For You</span></h2>
-        <p class="section-desc">Focused, practical help across the frontend of your product.</p>
+        <p class="eyebrow"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> <span data-i18n="services.eyebrow">Services</span></p>
+        <h2 class="section-title" data-i18n="services.titleHtml">What I Can <span class="accent-text">Do For You</span></h2>
+        <p class="section-desc" data-i18n="services.desc">Focused, practical help across the frontend of your product.</p>
       </div>
       <div class="services-grid" id="servicesGrid"></div>
     </div>
@@ -208,13 +294,13 @@
   <section class="section" id="experience">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-briefcase" aria-hidden="true"></i> Journey</p>
-        <h2 class="section-title">Experience &amp; <span class="accent-text">Education</span></h2>
-        <p class="section-desc">Where I've worked and what I've studied along the way.</p>
+        <p class="eyebrow"><i class="fa-solid fa-briefcase" aria-hidden="true"></i> <span data-i18n="experience.eyebrow">Journey</span></p>
+        <h2 class="section-title" data-i18n="experience.titleHtml">Experience &amp; <span class="accent-text">Education</span></h2>
+        <p class="section-desc" data-i18n="experience.desc">Where I've worked and what I've studied along the way.</p>
       </div>
       <div class="exp-tabs">
-        <button class="exp-tab active" data-tab="experience" type="button">Experience</button>
-        <button class="exp-tab" data-tab="education" type="button">Education</button>
+        <button class="exp-tab active" data-tab="experience" type="button" data-i18n="experience.tabExperience">Experience</button>
+        <button class="exp-tab" data-tab="education" type="button" data-i18n="experience.tabEducation">Education</button>
       </div>
       <div class="timeline-panel active" id="experiencePanel">
         <div class="timeline" id="experienceTimeline"></div>
@@ -229,9 +315,9 @@
   <section class="section" id="certificates">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-certificate" aria-hidden="true"></i> Credentials</p>
-        <h2 class="section-title">Certificates &amp; <span class="accent-text">Achievements</span></h2>
-        <p class="section-desc">Courses and certifications that back up the skills above.</p>
+        <p class="eyebrow"><i class="fa-solid fa-certificate" aria-hidden="true"></i> <span data-i18n="certificates.eyebrow">Credentials</span></p>
+        <h2 class="section-title" data-i18n="certificates.titleHtml">Certificates &amp; <span class="accent-text">Achievements</span></h2>
+        <p class="section-desc" data-i18n="certificates.desc">Courses and certifications that back up the skills above.</p>
       </div>
       <div class="cert-grid" id="certGrid"></div>
     </div>
@@ -241,9 +327,9 @@
   <section class="section" id="gallery">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-images" aria-hidden="true"></i> Gallery</p>
-        <h2 class="section-title">Behind The <span class="accent-text">Scenes</span></h2>
-        <p class="section-desc">A few snapshots outside of the code editor.</p>
+        <p class="eyebrow"><i class="fa-solid fa-images" aria-hidden="true"></i> <span data-i18n="gallery.eyebrow">Gallery</span></p>
+        <h2 class="section-title" data-i18n="gallery.titleHtml">Behind The <span class="accent-text">Scenes</span></h2>
+        <p class="section-desc" data-i18n="gallery.desc">A few snapshots outside of the code editor.</p>
       </div>
       <div class="gallery-grid" id="galleryGrid"></div>
     </div>
@@ -253,13 +339,27 @@
   <section class="section" id="testimonials">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Testimonials</p>
-        <h2 class="section-title">What People <span class="accent-text">Say</span></h2>
+        <p class="eyebrow"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i> <span data-i18n="testimonials.eyebrow">Testimonials</span></p>
+        <h2 class="section-title" data-i18n="testimonials.titleHtml">What People <span class="accent-text">Say</span></h2>
       </div>
       <div class="testimonial-track-wrap">
         <div class="testimonial-track" id="testimonialTrack"></div>
       </div>
       <div class="testimonial-dots" id="testimonialDots"></div>
+      <div style="text-align:center;margin-top:var(--sp-7)">
+        <button class="btn btn-outline magnetic" id="openTestimonialFormBtn" type="button"><i class="fa-solid fa-pen"></i> <span data-i18n="testimonials.shareBtn">Share Your Experience</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="section" id="faq">
+    <div class="container section-inner">
+      <div class="section-head">
+        <p class="eyebrow"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> <span data-i18n="faq.eyebrow">FAQ</span></p>
+        <h2 class="section-title" data-i18n="faq.titleHtml">Frequently Asked <span class="accent-text">Questions</span></h2>
+      </div>
+      <div class="faq-list" id="faqList"></div>
     </div>
   </section>
 
@@ -267,57 +367,57 @@
   <section class="section" id="contact">
     <div class="container section-inner">
       <div class="section-head">
-        <p class="eyebrow"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Contact</p>
-        <h2 class="section-title">Let's Work <span class="accent-text">Together</span></h2>
-        <p class="section-desc">Have a project in mind? Send a message and I'll get back to you.</p>
+        <p class="eyebrow"><i class="fa-solid fa-envelope" aria-hidden="true"></i> <span data-i18n="contact.eyebrow">Contact</span></p>
+        <h2 class="section-title" data-i18n="contact.titleHtml">Let's Work <span class="accent-text">Together</span></h2>
+        <p class="section-desc" data-i18n="contact.desc">Have a project in mind? Send a message and I'll get back to you.</p>
       </div>
       <div class="contact-grid">
         <div class="reveal">
           <div class="contact-info-card card">
             <span class="contact-info-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>
-            <div><span class="contact-info-label">PHONE</span><br /><span class="contact-info-value" id="contactPhone"></span></div>
+            <div><span class="contact-info-label" data-i18n="contact.phone">PHONE</span><br /><span class="contact-info-value" id="contactPhone"></span></div>
           </div>
           <div class="contact-info-card card">
             <span class="contact-info-icon"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span>
-            <div><span class="contact-info-label">EMAIL</span><br /><span class="contact-info-value" id="contactEmail"></span></div>
+            <div><span class="contact-info-label" data-i18n="contact.email">EMAIL</span><br /><span class="contact-info-value" id="contactEmail"></span></div>
           </div>
           <div class="contact-info-card card">
             <span class="contact-info-icon"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
-            <div><span class="contact-info-label">ADDRESS</span><br /><span class="contact-info-value" id="contactAddress"></span></div>
+            <div><span class="contact-info-label" data-i18n="contact.address">ADDRESS</span><br /><span class="contact-info-value" id="contactAddress"></span></div>
           </div>
           <div class="contact-map-frame card">
             <iframe id="contactMapFrame" src="" title="Location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
           <a id="contactMapLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="margin-top:var(--sp-3)">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in Google Maps
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span data-i18n="contact.mapLink">Open in Google Maps</span>
           </a>
         </div>
 
         <form class="contact-form-card card reveal" id="contactForm" novalidate>
           <div class="form-row">
             <div class="field" id="fieldName">
-              <label for="cf-name">Your Name</label>
-              <input type="text" id="cf-name" name="name" placeholder="John Doe" autocomplete="name" required />
+              <label for="cf-name" data-i18n="contact.nameLabel">Your Name</label>
+              <input type="text" id="cf-name" name="name" placeholder="John Doe" data-i18n-placeholder="contact.namePh" autocomplete="name" required />
               <span class="field-error">Please enter your name (min 2 characters).</span>
             </div>
             <div class="field" id="fieldEmail">
-              <label for="cf-email">Your Email</label>
-              <input type="email" id="cf-email" name="email" placeholder="john@example.com" autocomplete="email" required />
+              <label for="cf-email" data-i18n="contact.emailLabel">Your Email</label>
+              <input type="email" id="cf-email" name="email" placeholder="john@example.com" data-i18n-placeholder="contact.emailPh" autocomplete="email" required />
               <span class="field-error">Please enter a valid email address.</span>
             </div>
           </div>
           <div class="field" id="fieldSubject">
-            <label for="cf-subject">Subject</label>
-            <input type="text" id="cf-subject" name="subject" placeholder="Project inquiry" required />
+            <label for="cf-subject" data-i18n="contact.subjectLabel">Subject</label>
+            <input type="text" id="cf-subject" name="subject" placeholder="Project inquiry" data-i18n-placeholder="contact.subjectPh" required />
             <span class="field-error">Please enter a subject (min 3 characters).</span>
           </div>
           <div class="field" id="fieldMessage">
-            <label for="cf-message">Message</label>
-            <textarea id="cf-message" name="message" placeholder="Tell me about your project..." required></textarea>
+            <label for="cf-message" data-i18n="contact.messageLabel">Message</label>
+            <textarea id="cf-message" name="message" placeholder="Tell me about your project..." data-i18n-placeholder="contact.messagePh" required></textarea>
             <span class="field-error">Please enter a message (min 10 characters).</span>
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="contactSubmitBtn">
-            <i class="fa-solid fa-paper-plane"></i> Send Message
+            <i class="fa-solid fa-paper-plane"></i> <span data-i18n="contact.sendBtn">Send Message</span>
           </button>
           <p class="form-status" id="formStatus"></p>
         </form>
@@ -340,31 +440,39 @@
         <div class="footer-socials" id="footerSocials"></div>
       </div>
       <div>
-        <h3 class="footer-heading">Navigate</h3>
+        <h3 class="footer-heading" data-i18n="footer.navigate">Navigate</h3>
         <ul class="footer-links">
-          <li><a href="#about" data-nav>About</a></li>
-          <li><a href="#skills" data-nav>Skills</a></li>
-          <li><a href="#projects" data-nav>Projects</a></li>
-          <li><a href="#contact" data-nav>Contact</a></li>
+          <li><a href="#about" data-nav data-i18n="nav.about">About</a></li>
+          <li><a href="#skills" data-nav data-i18n="nav.skills">Skills</a></li>
+          <li><a href="#projects" data-nav data-i18n="nav.projects">Projects</a></li>
+          <li><a href="#blog" data-nav data-i18n="nav.blog">Blog</a></li>
+          <li><a href="#contact" data-nav data-i18n="nav.contact">Contact</a></li>
         </ul>
       </div>
       <div>
-        <h3 class="footer-heading">Resources</h3>
+        <h3 class="footer-heading" data-i18n="footer.resources">Resources</h3>
         <ul class="footer-links">
-          <li><a id="footerResume" href="assets/Resume-of-Shagar-Chandro.pdf" download>Resume</a></li>
-          <li><a href="#certificates" data-nav>Certificates</a></li>
-          <li><a href="#gallery" data-nav>Gallery</a></li>
-          <li><a href="admin/index.html">Admin Panel</a></li>
+          <li><a id="footerResume" href="assets/Resume-of-Shagar-Chandro.pdf" download data-i18n="footer.resume">Resume</a></li>
+          <li><a href="resume.html" target="_blank" data-i18n="footer.printableResume">Printable Resume (PDF)</a></li>
+          <li><a href="#certificates" data-nav data-i18n="nav.certificates">Certificates</a></li>
+          <li><a href="#gallery" data-nav data-i18n="nav.gallery">Gallery</a></li>
+          <li><a href="admin/index.html" data-i18n="footer.admin">Admin Panel</a></li>
+          <li><a href="privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
         </ul>
       </div>
       <div>
-        <h3 class="footer-heading">Newsletter</h3>
-        <p class="footer-about">Want occasional updates on new projects? Reach out via the contact form.</p>
+        <h3 class="footer-heading" data-i18n="footer.newsletter">Newsletter</h3>
+        <p class="footer-about" data-i18n="footer.newsletterText">Get occasional updates on new projects and posts.</p>
+        <form class="newsletter-form" id="newsletterForm" novalidate>
+          <input type="email" id="newsletter-email" placeholder="you@example.com" data-i18n-placeholder="footer.newsletterPh" required aria-label="Email address" />
+          <button type="submit" class="btn btn-primary btn-sm" aria-label="Subscribe"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+        <p class="newsletter-status" id="newsletterStatus"></p>
       </div>
     </div>
     <div class="footer-bottom">
       <span id="footerText"></span>
-      <span>Built with <i class="fa-solid fa-heart" style="color:var(--danger)"></i> using HTML, CSS &amp; JavaScript</span>
+      <span><span data-i18n="footer.builtWith">Built with HTML, CSS &amp; JavaScript</span> <i class="fa-solid fa-heart" style="color:var(--danger)"></i></span>
     </div>
   </div>
 </footer>
@@ -380,7 +488,112 @@
   <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
 </button>
 
+<!-- ===== Project case-study modal ===== -->
+<div class="project-modal-overlay" id="projectModalOverlay">
+  <div class="project-modal" id="projectModalBox" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
+    <div class="project-modal-cover">
+      <img id="projectModalImg" src="" alt="" />
+      <button class="project-modal-close" id="projectModalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="project-modal-body">
+      <span class="project-modal-cat" id="projectModalCat"></span>
+      <h3 class="project-modal-title" id="projectModalTitle"></h3>
+      <div class="project-modal-links" id="projectModalLinks"></div>
+      <div class="project-modal-block">
+        <h4>The Challenge</h4>
+        <p id="projectModalChallenge"></p>
+      </div>
+      <div class="project-modal-block">
+        <h4>The Solution</h4>
+        <p id="projectModalSolution"></p>
+      </div>
+      <div class="project-modal-block">
+        <h4>Tech Stack</h4>
+        <div class="tech-pills" id="projectModalTech"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PWA install banner ===== -->
+<div class="install-banner card" id="installBanner" hidden>
+  <span class="install-banner-icon">SC</span>
+  <div class="install-banner-text">
+    <strong data-i18n="install.title">Install this site</strong>
+    <span data-i18n="install.text">Add it to your home screen for quick, app-like access.</span>
+  </div>
+  <div class="install-banner-actions">
+    <button class="btn btn-primary btn-sm" id="installBtn" data-i18n="install.btn">Install</button>
+    <button class="icon-btn install-banner-close" id="installDismiss" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+</div>
+
+<!-- ===== Command palette (Ctrl/Cmd + K) ===== -->
+<div class="cmdk-overlay" id="cmdkOverlay">
+  <div class="cmdk-box" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div class="cmdk-input-row">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input type="text" id="cmdkInput" placeholder="Search sections, projects, posts... (Esc to close)" data-i18n-placeholder="cmdk.placeholder" autocomplete="off" />
+      <kbd>Esc</kbd>
+    </div>
+    <div class="cmdk-results" id="cmdkResults"></div>
+  </div>
+</div>
+
+<!-- ===== WhatsApp floating button ===== -->
+<a href="#" id="whatsappBtn" class="whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp" hidden>
+  <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+</a>
+
+<!-- ===== Cookie / local-storage consent banner ===== -->
+<div class="cookie-banner card" id="cookieBanner" hidden>
+  <p><span data-i18n="cookie.text">This site stores basic preferences and anonymous visit counts in your browser's local storage (no third-party cookies or tracking).</span> <a href="privacy.html" data-i18n="cookie.learnMore">Learn more</a>.</p>
+  <button class="btn btn-primary btn-sm" id="cookieAcceptBtn" data-i18n="cookie.accept">Got it</button>
+</div>
+
+<!-- ===== Visitor "Share Your Experience" testimonial modal ===== -->
+<div class="site-modal-overlay" id="testimonialFormOverlay">
+  <div class="site-modal" role="dialog" aria-modal="true">
+    <div class="site-modal-head">
+      <h2 data-i18n="testimonialForm.title">Share Your Experience</h2>
+      <button class="icon-btn" id="testimonialFormClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="testimonialForm" class="site-modal-body">
+      <div class="field">
+        <label for="tf-name" data-i18n="testimonialForm.nameLabel">Your Name</label>
+        <input type="text" id="tf-name" required />
+      </div>
+      <div class="field">
+        <label for="tf-role" data-i18n="testimonialForm.roleLabel">Your Role / Company</label>
+        <input type="text" id="tf-role" required />
+      </div>
+      <div class="field">
+        <label data-i18n="testimonialForm.ratingLabel">Rating</label>
+        <div class="star-picker" id="starPicker">
+          <button type="button" data-star="1" aria-label="1 star"><i class="fa-solid fa-star"></i></button>
+          <button type="button" data-star="2" aria-label="2 stars"><i class="fa-solid fa-star"></i></button>
+          <button type="button" data-star="3" aria-label="3 stars"><i class="fa-solid fa-star"></i></button>
+          <button type="button" data-star="4" aria-label="4 stars"><i class="fa-solid fa-star"></i></button>
+          <button type="button" data-star="5" aria-label="5 stars"><i class="fa-solid fa-star"></i></button>
+        </div>
+        <input type="hidden" id="tf-rating" value="5" />
+      </div>
+      <div class="field">
+        <label for="tf-text" data-i18n="testimonialForm.textLabel">Your Testimonial</label>
+        <textarea id="tf-text" required></textarea>
+      </div>
+      <p style="color:var(--text-dim);font-size:var(--fs-xs)"><i class="fa-solid fa-circle-info"></i> <span data-i18n="testimonialForm.note">Submitted testimonials are reviewed before they appear on the site.</span></p>
+    </form>
+    <div class="site-modal-foot">
+      <button type="button" class="btn btn-ghost" id="testimonialFormCancel" data-i18n="testimonialForm.cancel">Cancel</button>
+      <button type="submit" form="testimonialForm" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="testimonialForm.submit">Submit</span></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="js/data-store.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/validation.js"></script>
 <script src="js/main.js"></script>
 </body>
