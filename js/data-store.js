@@ -290,6 +290,27 @@ const DataStore = {
     return this.get();
   },
 
+  /** Resets one whole top-level section (e.g. 'profile', 'hero') back to its
+      shipped default, leaving every other section untouched. */
+  resetSection(sectionKey) {
+    const data = this.get();
+    data[sectionKey] = structuredClone(DEFAULT_DATA[sectionKey]);
+    this.set(data);
+    return data[sectionKey];
+  },
+
+  /** Resets only specific fields within a section back to their defaults —
+      used for siteSettings, which is shared between the Theme Settings and
+      Website Settings panels and shouldn't have one panel's reset wipe the
+      other's fields. */
+  resetFields(sectionKey, fieldNames) {
+    const data = this.get();
+    const defaults = DEFAULT_DATA[sectionKey];
+    fieldNames.forEach(f => { data[sectionKey][f] = structuredClone(defaults[f]); });
+    this.set(data);
+    return data[sectionKey];
+  },
+
   /* ---- Generic CRUD helpers for array-based sections ---- */
   addItem(sectionKey, item) {
     const data = this.get();

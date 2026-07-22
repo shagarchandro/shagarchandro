@@ -291,7 +291,7 @@
   function renderProfile(root) {
     const p = data.profile;
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Profile</h2><p>Your public identity shown across the site.</p></div></div>
+      <div class="admin-panel-head"><div><h2>Profile</h2><p>Your public identity shown across the site.</p></div>${resetButtonHtml('Profile')}</div>
       <form id="profileForm" class="admin-card card">
         <div class="admin-form-grid">
           <div class="field"><label>Full Name</label><input name="name" value="${escapeHtml(p.name)}" required /></div>
@@ -333,13 +333,14 @@
       const updated = { ...data.profile, name: fd.get('name'), title: fd.get('title'), bio: fd.get('bio'), githubUsername: fd.get('githubUsername').trim(), photo: fd.get('photo'), resumeUrl: fd.get('resumeUrl') };
       DataStore.update('profile', updated);
     });
+    bindResetButton('profile', 'Profile', renderProfile);
   }
 
   /* ============================ HERO ============================ */
   function renderHero(root) {
     const h = data.hero;
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Hero Section</h2><p>The first thing visitors see.</p></div></div>
+      <div class="admin-panel-head"><div><h2>Hero Section</h2><p>The first thing visitors see.</p></div>${resetButtonHtml('Hero Section')}</div>
       <form id="heroForm" class="admin-card card">
         <div class="admin-form-grid">
           <div class="field full"><label>Title</label><input name="title" value="${escapeHtml(h.title)}" required /></div>
@@ -390,13 +391,14 @@
       };
       DataStore.update('hero', updated);
     });
+    bindResetButton('hero', 'Hero Section', renderHero);
   }
 
   /* ============================ ABOUT ============================ */
   function renderAbout(root) {
     const a = data.about;
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>About Section</h2><p>Your story, experience and education summary.</p></div></div>
+      <div class="admin-panel-head"><div><h2>About Section</h2><p>Your story, experience and education summary.</p></div>${resetButtonHtml('About Section')}</div>
       <form id="aboutForm" class="admin-card card">
         <div class="admin-form-grid">
           <div class="field full"><label>About Text</label><textarea name="text" required>${escapeHtml(a.text)}</textarea></div>
@@ -435,13 +437,14 @@
       const updated = { ...data.about, text: fd.get('text'), experienceSummary: fd.get('experienceSummary'), educationSummary: fd.get('educationSummary'), stats };
       DataStore.update('about', updated);
     });
+    bindResetButton('about', 'About Section', renderAbout);
   }
 
   /* ============================ CONTACT ============================ */
   function renderContact(root) {
     const c = data.contact;
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Contact Information</h2><p>Shown in the Contact section and footer.</p></div></div>
+      <div class="admin-panel-head"><div><h2>Contact Information</h2><p>Shown in the Contact section and footer.</p></div>${resetButtonHtml('Contact Info')}</div>
       <form id="contactForm" class="admin-card card">
         <div class="admin-form-grid">
           <div class="field"><label>Phone</label><input name="phone" value="${escapeHtml(c.phone)}" required /></div>
@@ -455,6 +458,7 @@
     bindSimpleForm(root, 'contactForm', (fd) => {
       DataStore.update('contact', { phone: fd.get('phone'), email: fd.get('email'), address: fd.get('address'), mapEmbed: fd.get('mapEmbed') });
     });
+    bindResetButton('contact', 'Contact Info', renderContact);
   }
 
   /* ============================ SOCIAL ============================ */
@@ -462,7 +466,7 @@
     const s = data.social;
     const platforms = ['facebook', 'github', 'linkedin', 'youtube', 'instagram', 'twitter'];
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Social Media</h2><p>Profile links used across the site.</p></div></div>
+      <div class="admin-panel-head"><div><h2>Social Media</h2><p>Profile links used across the site.</p></div>${resetButtonHtml('Social Media')}</div>
       <form id="socialForm" class="admin-card card">
         <div class="admin-form-grid">
           ${platforms.map(p => `<div class="field"><label>${p.charAt(0).toUpperCase() + p.slice(1)}</label><input name="${p}" value="${escapeHtml(s[p] || '')}" placeholder="https://" /></div>`).join('')}
@@ -475,6 +479,7 @@
       platforms.forEach(p => updated[p] = fd.get(p));
       DataStore.update('social', updated);
     });
+    bindResetButton('social', 'Social Media', renderSocial);
   }
 
   /* ============================ INTEGRATIONS (EmailJS + Google Sheets) ============================ */
@@ -485,7 +490,7 @@
     const wa = cfg.whatsapp || {};
 
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Integrations</h2><p>Send contact-form submissions to email and/or a Google Sheet, on top of the local Messages inbox.</p></div></div>
+      <div class="admin-panel-head"><div><h2>Integrations</h2><p>Send contact-form submissions to email and/or a Google Sheet, on top of the local Messages inbox.</p></div>${resetButtonHtml('Integrations')}</div>
 
       <form id="emailjsForm" class="admin-card card">
         <h3><i class="fa-solid fa-envelope"></i> EmailJS — send an email on submit</h3>
@@ -639,13 +644,15 @@
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-table"></i> Send Test Row';
     });
+
+    bindResetButton('integrations', 'Integrations', renderIntegrations);
   }
 
   /* ============================ THEME SETTINGS ============================ */
   function renderTheme(root) {
     const s = data.siteSettings;
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Theme Settings</h2><p>Controls the accent colors and font used site-wide.</p></div></div>
+      <div class="admin-panel-head"><div><h2>Theme Settings</h2><p>Controls the accent colors and font used site-wide.</p></div>${resetButtonHtml('Theme')}</div>
       <form id="themeForm" class="admin-card card">
         <div class="admin-form-grid">
           <div class="field">
@@ -682,13 +689,14 @@
     bindSimpleForm(root, 'themeForm', (fd) => {
       DataStore.update('siteSettings', { ...data.siteSettings, primaryColor: fd.get('primaryColor'), secondaryColor: fd.get('secondaryColor'), backgroundColor: fd.get('backgroundColor'), fontFamily: fd.get('fontFamily') });
     });
+    bindResetButton('siteSettings', 'Theme', renderTheme, ['primaryColor', 'secondaryColor', 'backgroundColor', 'fontFamily']);
   }
 
   /* ============================ WEBSITE SETTINGS ============================ */
   function renderWebsite(root) {
     const s = data.siteSettings;
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Website Settings</h2><p>Logo, favicon, site title and footer text.</p></div></div>
+      <div class="admin-panel-head"><div><h2>Website Settings</h2><p>Logo, favicon, site title and footer text.</p></div>${resetButtonHtml('Website Settings')}</div>
       <form id="websiteForm" class="admin-card card">
         <div class="admin-form-grid">
           <div class="field"><label>Site Title</label><input name="siteTitle" value="${escapeHtml(s.siteTitle)}" required /></div>
@@ -722,6 +730,7 @@
     bindSimpleForm(root, 'websiteForm', (fd) => {
       DataStore.update('siteSettings', { ...data.siteSettings, siteTitle: fd.get('siteTitle'), logoText: fd.get('logoText'), favicon: fd.get('favicon'), footerText: fd.get('footerText'), cookieConsentEnabled: fd.get('cookieConsentEnabled') === 'on' });
     });
+    bindResetButton('siteSettings', 'Website Settings', renderWebsite, ['siteTitle', 'logoText', 'favicon', 'footerText', 'cookieConsentEnabled']);
   }
 
   /* ============================ TESTIMONIAL REQUESTS (visitor submissions) ============================ */
@@ -1287,6 +1296,32 @@
     function onCancel() { cleanup(); }
     okBtn.addEventListener('click', onOk);
     cancelBtn.addEventListener('click', onCancel);
+  }
+
+  /* ============================ RESET-TO-DEFAULT (per settings panel) ============================ */
+  /** Markup for a small danger-styled "Reset to Default" button, meant to sit
+      in a panel's .admin-panel-head next to the title. */
+  function resetButtonHtml(label) {
+    return `<button class="btn btn-outline btn-sm" id="resetSectionBtn" style="border-color:var(--danger);color:var(--danger);flex-shrink:0"><i class="fa-solid fa-rotate-left"></i> Reset ${escapeHtml(label)}</button>`;
+  }
+
+  /**
+   * Wires the button created by resetButtonHtml(). Pass `fields` (an array
+   * of field names) to reset only part of a shared section like
+   * siteSettings; omit it to reset the whole section.
+   */
+  function bindResetButton(sectionKey, label, rerender, fields) {
+    const btn = document.getElementById('resetSectionBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      confirmAction(`Reset ${label} to its original default values? Your current changes here will be lost — this doesn't affect any other section.`, () => {
+        if (fields) DataStore.resetFields(sectionKey, fields);
+        else DataStore.resetSection(sectionKey);
+        data = DataStore.get();
+        Toast.success('Reset', `${label} restored to defaults.`);
+        rerender(document.getElementById('adminContent'));
+      });
+    });
   }
 
   /* ============================ GENERIC CRUD ENGINE ============================ */

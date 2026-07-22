@@ -347,6 +347,14 @@ saved to Admin → Messages every time.
   your password if you're ever locked out. Each key is single-use and
   invalidated the moment it's used; generating a new one invalidates any
   previous key.
+- **Per-section "Reset to Default"** — Profile, Hero Section, About Section,
+  Contact Info, Social Media, Theme Settings, Website Settings, and
+  Integrations each have their own "Reset" button (next to the panel
+  title) that restores just that section to its shipped defaults, without
+  touching anything else. This is separate from Data Management's
+  "Reset All Data", which wipes everything. Theme Settings and Website
+  Settings share the same underlying settings object but reset
+  independently — resetting one never touches the other's fields.
 
 ## 11. Images & the resume
 
