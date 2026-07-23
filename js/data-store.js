@@ -115,10 +115,10 @@ const DEFAULT_DATA = {
   ],
 
   clients: [
-    { id: 'cl1', name: 'Aam Bazar', logo: 'assets/images/clients/client1.svg' },
-    { id: 'cl2', name: 'Amer Hat Bazar', logo: 'assets/images/clients/client2.svg' },
-    { id: 'cl3', name: 'TextUtils', logo: 'assets/images/clients/client3.svg' },
-    { id: 'cl4', name: 'School ERP', logo: 'assets/images/clients/client4.svg' }
+    { id: 'cl1', name: 'Aam Bazar', logo: 'assets/images/clients/client1.svg', url: 'https://shagarchandro.github.io/aambazar.com/' },
+    { id: 'cl2', name: 'Amer Hat Bazar', logo: 'assets/images/clients/client2.svg', url: 'https://shagarchandro.github.io/amerhatbazar.com/' },
+    { id: 'cl3', name: 'TextUtils', logo: 'assets/images/clients/client3.svg', url: '' },
+    { id: 'cl4', name: 'School ERP', logo: 'assets/images/clients/client4.svg', url: '' }
   ],
 
   testimonials: [

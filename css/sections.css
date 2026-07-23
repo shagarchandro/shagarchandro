@@ -390,6 +390,19 @@
 .cert-title { font-size: var(--fs-md); margin-bottom: 2px; }
 .cert-issuer { color: var(--text-muted); font-size: var(--fs-sm); }
 .cert-date { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--accent); white-space: nowrap; }
+.cert-verify-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.cert-verify-link:hover { color: var(--accent); background: var(--surface-2); }
 
 /* ---------- GALLERY ---------- */
 .gallery-grid {

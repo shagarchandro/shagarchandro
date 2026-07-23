@@ -339,11 +339,16 @@
       section.style.display = 'none';
       return;
     }
-    track.innerHTML = data.clients.map((c, i) => `
-      <div class="client-logo-card reveal magnetic" style="transition-delay:${i * 60}ms">
-        <img class="client-logo" src="${escapeAttr(c.logo)}" alt="${escapeAttr(c.name)}" loading="lazy" data-shimmer />
-      </div>
-    `).join('');
+    track.innerHTML = data.clients.map((c, i) => {
+      const hasUrl = c.url && c.url.trim();
+      const tag = hasUrl ? 'a' : 'div';
+      const linkAttrs = hasUrl ? `href="${escapeAttr(c.url)}" target="_blank" rel="noopener noreferrer"` : '';
+      return `
+        <${tag} class="client-logo-card reveal magnetic" style="transition-delay:${i * 60}ms" ${linkAttrs} aria-label="${hasUrl ? escapeAttr(c.name) : ''}">
+          <img class="client-logo" src="${escapeAttr(c.logo)}" alt="${escapeAttr(c.name)}" loading="lazy" data-shimmer />
+        </${tag}>
+      `;
+    }).join('');
     requestAnimationFrame(() => { observeReveal(); bindShimmer(); bindMagnetic(); });
   }
 
@@ -395,6 +400,7 @@
           </div>
           <span class="cert-date">${escapeHtml(c.date)}</span>
         </div>
+        ${c.link && c.link !== '#' ? `<a class="cert-verify-link" href="${escapeAttr(c.link)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> Verify Certificate</a>` : ''}
       </div>
     `).join('');
   }

@@ -1416,7 +1416,8 @@
     label: 'Client', labelPlural: 'Clients', reorderable: true,
     fields: [
       { key: 'name', label: 'Client / Company Name', type: 'text', required: true },
-      { key: 'logo', label: 'Logo', type: 'image', required: true }
+      { key: 'logo', label: 'Logo', type: 'image', required: true },
+      { key: 'url', label: 'Website URL (optional — makes the logo clickable)', type: 'url' }
     ],
     columns: [
       { key: 'logo', label: '', type: 'image' },
