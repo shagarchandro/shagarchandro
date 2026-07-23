@@ -138,13 +138,28 @@
   }
 
   /* ============================ ABOUT ============================ */
+  /** Wires an <a> element as a mailto: link. On touch devices, native
+      mailto: handling is left alone (correctly opens the phone's mail app).
+      On desktop, clicking opens Gmail's web compose in a new tab instead,
+      since many desktops have no mail client registered for mailto: at all. */
+  function setupEmailLink(el, email) {
+    el.textContent = email;
+    el.href = `mailto:${email}`;
+    if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`, '_blank', 'noopener,noreferrer');
+      });
+    }
+  }
+
   function renderAbout() {
     document.getElementById('aboutPhoto').src = data.profile.photo;
     document.getElementById('aboutPhoto').alt = `Portrait of ${data.profile.name}`;
     document.getElementById('aboutText').textContent = data.about.text;
     document.getElementById('aboutExpSummary').textContent = data.about.experienceSummary;
     document.getElementById('aboutEduSummary').textContent = data.about.educationSummary;
-    document.getElementById('aboutEmail').textContent = data.contact.email;
+    setupEmailLink(document.getElementById('aboutEmail'), data.contact.email);
     document.getElementById('aboutLocation').textContent = data.contact.address;
     document.getElementById('aboutExpBadge').textContent = (data.about.experienceSummary.match(/\d+/) || ['1'])[0] + '+';
 
@@ -459,9 +474,15 @@
 
   /* ============================ CONTACT ============================ */
   function renderContact() {
-    document.getElementById('contactPhone').textContent = data.contact.phone;
-    document.getElementById('contactEmail').textContent = data.contact.email;
-    document.getElementById('contactAddress').textContent = data.contact.address;
+    const phoneLink = document.getElementById('contactPhone');
+    const emailLink = document.getElementById('contactEmail');
+    const addressLink = document.getElementById('contactAddress');
+
+    phoneLink.textContent = data.contact.phone;
+    phoneLink.href = `tel:${data.contact.phone.replace(/[^\d+]/g, '')}`;
+
+    setupEmailLink(emailLink, data.contact.email);
+
     document.getElementById('footerAbout').textContent = data.about.text.slice(0, 130) + '...';
 
     const mapFrame = document.getElementById('contactMapFrame');
@@ -469,13 +490,18 @@
     mapFrame.src = `https://maps.google.com/maps?q=${query}&output=embed`;
 
     // The admin-editable "Google Map link" is used for the outbound "Open in
-    // Google Maps" link; the embedded iframe itself is always built from the
-    // address above so it keeps working even if that field is left blank.
+    // Google Maps" link and the clickable address text; the embedded iframe
+    // itself is always built from the address above so it keeps working
+    // even if that field is left blank.
+    const resolvedMapUrl = (data.contact.mapEmbed && data.contact.mapEmbed.trim())
+      ? data.contact.mapEmbed
+      : `https://maps.google.com/?q=${query}`;
+    addressLink.textContent = data.contact.address;
+    addressLink.href = resolvedMapUrl;
+
     const mapLink = document.getElementById('contactMapLink');
     if (mapLink) {
-      mapLink.href = (data.contact.mapEmbed && data.contact.mapEmbed.trim())
-        ? data.contact.mapEmbed
-        : `https://maps.google.com/?q=${query}`;
+      mapLink.href = resolvedMapUrl;
     }
 
     const form = document.getElementById('contactForm');
