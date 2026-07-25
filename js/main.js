@@ -903,6 +903,20 @@
   }
 
   /* ============================ PWA: INSTALL PROMPT + SERVICE WORKER ============================ */
+  /* Fixed-position banners that dock to the bottom of the screen (cookie
+     consent, PWA install prompt) would otherwise sit on top of — and
+     silently swallow taps on — whatever page content scrolls to that same
+     screen region on mobile. This keeps the page's bottom padding equal to
+     the tallest currently-visible bottom banner, so content is always
+     pushed clear instead of hidden underneath. */
+  function updateBottomReservedSpace() {
+    let tallest = 0;
+    document.querySelectorAll('.cookie-banner.visible, .install-banner.visible').forEach(el => {
+      tallest = Math.max(tallest, el.offsetHeight);
+    });
+    document.body.style.paddingBottom = tallest ? `${tallest}px` : '';
+  }
+
   function initPWA() {
     let deferredPrompt = null;
     const banner = document.getElementById('installBanner');
@@ -913,7 +927,7 @@
       deferredPrompt = e;
       if (!localStorage.getItem(dismissedKey) && banner) {
         banner.hidden = false;
-        requestAnimationFrame(() => banner.classList.add('visible'));
+        requestAnimationFrame(() => { banner.classList.add('visible'); updateBottomReservedSpace(); });
       }
     });
 
@@ -923,10 +937,12 @@
       await deferredPrompt.userChoice;
       deferredPrompt = null;
       banner.classList.remove('visible');
+      updateBottomReservedSpace();
     });
     document.getElementById('installDismiss')?.addEventListener('click', () => {
       banner.classList.remove('visible');
       localStorage.setItem(dismissedKey, '1');
+      updateBottomReservedSpace();
     });
 
     if ('serviceWorker' in navigator && window.isSecureContext) {
@@ -1092,11 +1108,20 @@
     if (localStorage.getItem(KEY)) return;
     const banner = document.getElementById('cookieBanner');
     if (!banner) return;
+
     banner.hidden = false;
-    requestAnimationFrame(() => banner.classList.add('visible'));
+    requestAnimationFrame(() => {
+      banner.classList.add('visible');
+      updateBottomReservedSpace();
+    });
+    window.addEventListener('resize', () => {
+      if (banner.classList.contains('visible')) updateBottomReservedSpace();
+    });
+
     document.getElementById('cookieAcceptBtn').addEventListener('click', () => {
       localStorage.setItem(KEY, '1');
       banner.classList.remove('visible');
+      updateBottomReservedSpace();
       setTimeout(() => { banner.hidden = true; }, 400);
     });
   }
