@@ -177,6 +177,69 @@ img[data-shimmer].loaded {
 .blog-card-excerpt { color: var(--text-muted); font-size: var(--fs-sm); flex: 1; margin-bottom: var(--sp-4); }
 .blog-card-link { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--accent); display: inline-flex; align-items: center; gap: 6px; }
 
+/* ---------- Blog archive (blog.html with no ?post — full list, search + tag filter) ---------- */
+.blog-archive-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+}
+.blog-archive-search {
+  flex: 1;
+  min-width: 220px;
+  position: relative;
+}
+.blog-archive-search i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+.blog-archive-search input {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+}
+.blog-archive-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.blog-archive-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.blog-archive-tag {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+}
+.blog-archive-tag:hover { border-color: var(--accent); color: var(--text); }
+.blog-archive-tag.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+.blog-archive-empty {
+  text-align: center;
+  padding: var(--sp-7) 0;
+  color: var(--text-muted);
+}
+
 /* ---------- Blog reader page (blog.html) ---------- */
 .blog-post-header { max-width: 760px; margin: 0 auto var(--sp-6); text-align: center; }
 .blog-post-cover { max-width: 900px; margin: 0 auto var(--sp-7); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); aspect-ratio: 21/9; }

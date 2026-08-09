@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Privacy Policy — Shagar Chandro</title>
 <meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://shagarchandro.github.io/shagarchandro-Portfolio/privacy.html" />
 <link rel="icon" type="image/svg+xml" href="assets/images/profile/favicon.svg" />
 <meta name="theme-color" content="#0b0f17" />
 
@@ -98,12 +99,19 @@
 </button>
 
 <script>
-  document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+  function syncThemeColorMeta(theme) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f6fa' : '#0b0f17');
+  }
+  const initialTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', initialTheme);
+  syncThemeColorMeta(initialTheme);
   document.getElementById('themeToggle').addEventListener('click', () => {
     const html = document.documentElement;
     const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
+    syncThemeColorMeta(next);
   });
   const progress = document.getElementById('scrollProgress');
   const topBtn = document.getElementById('scrollTopBtn');

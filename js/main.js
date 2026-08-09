@@ -21,11 +21,20 @@
   const savedTheme = storedTheme || (systemPrefersLight ? 'light' : 'dark');
   html.setAttribute('data-theme', savedTheme);
 
+  // Keep the mobile browser chrome (address bar) color in sync with the
+  // active theme, instead of always showing the dark background color.
+  function syncThemeColorMeta(theme) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f6fa' : '#0b0f17');
+  }
+  syncThemeColorMeta(savedTheme);
+
   document.getElementById('themeToggle').addEventListener('click', () => {
     const current = html.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
+    syncThemeColorMeta(next);
   });
 
   /* ============================ LANGUAGE ============================ */
@@ -532,6 +541,13 @@
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      // Honeypot: a hidden field real visitors never see or fill. If it has
+      // a value, silently drop the submission without any error feedback —
+      // that avoids tipping the bot off while protecting Messages/inbox.
+      const hp = document.getElementById('cf-website');
+      if (hp && hp.value) return;
+
       let allValid = true;
       Object.keys(rules).forEach(id => {
         const fieldEl = document.getElementById(rules[id].field);
@@ -631,6 +647,11 @@
     const lang = I18n.get();
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      // Honeypot: dropped silently, same as the contact form above.
+      const hp = document.getElementById('nl-website');
+      if (hp && hp.value) return;
+
       const email = document.getElementById('newsletter-email').value;
       const result = DataStore.addSubscriber(email);
       const currentLang = I18n.get();
@@ -947,9 +968,37 @@
 
     if ('serviceWorker' in navigator && window.isSecureContext) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js').catch(() => {
+        navigator.serviceWorker.register('service-worker.js').then((reg) => {
+          // Detect a new version once it's installed. navigator.serviceWorker.controller
+          // is only set once a worker has already taken control of this page,
+          // so checking for it here is what distinguishes "this is an update"
+          // from "this is the very first install" (which needs no banner).
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                showUpdateBanner();
+              }
+            });
+          });
+        }).catch(() => {
           /* Offline support is a progressive enhancement — silently skip if registration fails. */
         });
+      });
+
+      function showUpdateBanner() {
+        const banner = document.getElementById('updateBanner');
+        if (!banner) return;
+        banner.hidden = false;
+        requestAnimationFrame(() => { banner.classList.add('visible'); updateBottomReservedSpace(); });
+      }
+
+      document.getElementById('updateReloadBtn')?.addEventListener('click', () => {
+        // service-worker.js calls skipWaiting()/clients.claim() automatically,
+        // so by the time this banner is visible the new worker has already
+        // taken over — a plain reload is enough to pick up the new assets.
+        window.location.reload();
       });
     }
   }
@@ -1164,6 +1213,11 @@
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      // Honeypot: dropped silently, same pattern as the contact form.
+      const hp = document.getElementById('tf-website');
+      if (hp && hp.value) return;
+
       const name = document.getElementById('tf-name').value.trim();
       const role = document.getElementById('tf-role').value.trim();
       const text = document.getElementById('tf-text').value.trim();

@@ -415,6 +415,20 @@
   border-color: var(--success);
 }
 
+/* Honeypot field (spam protection): visually and off-screen hidden from
+   real visitors and screen readers, but still present in the DOM/tab
+   order enough that simple bots that auto-fill every input still catch
+   it. display:none is avoided since some bots skip those. */
+.field-hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  left: -9999px;
+}
+
 /* ---------- Section divider glow ---------- */
 .glow-orb {
   position: absolute;

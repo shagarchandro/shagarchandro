@@ -1347,7 +1347,10 @@
       { key: 'description', label: 'Description', type: 'textarea', required: true },
       { key: 'image', label: 'Project Image', type: 'image' },
       { key: 'liveLink', label: 'Live Link', type: 'url' },
-      { key: 'githubLink', label: 'GitHub Link', type: 'url' }
+      { key: 'githubLink', label: 'GitHub Link', type: 'url' },
+      { key: 'challenge', label: 'Challenge (shown in the project case-study modal)', type: 'textarea' },
+      { key: 'solution', label: 'Solution (shown in the project case-study modal)', type: 'textarea' },
+      { key: 'techStack', label: 'Tech Stack (comma separated)', type: 'text', placeholder: 'HTML, CSS, JavaScript' }
     ],
     columns: [
       { key: 'image', label: '', type: 'image' },

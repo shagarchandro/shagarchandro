@@ -117,6 +117,9 @@ const TRANSLATIONS = {
   'install.title': { en: 'Install this site', bn: 'সাইটটি ইনস্টল করুন' },
   'install.text': { en: 'Add it to your home screen for quick, app-like access.', bn: 'দ্রুত অ্যাপের মতো ব্যবহারের জন্য হোম স্ক্রিনে যোগ করুন।' },
   'install.btn': { en: 'Install', bn: 'ইনস্টল' },
+  'update.title': { en: 'Update available', bn: 'নতুন আপডেট এসেছে' },
+  'update.text': { en: 'A new version of this site is ready.', bn: 'সাইটের নতুন একটি ভার্সন প্রস্তুত।' },
+  'update.btn': { en: 'Refresh', bn: 'রিফ্রেশ' },
 
   'testimonialForm.title': { en: 'Share Your Experience', bn: 'আপনার অভিজ্ঞতা জানান' },
   'testimonialForm.nameLabel': { en: 'Your Name', bn: 'আপনার নাম' },

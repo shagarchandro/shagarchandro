@@ -12,13 +12,16 @@
 
 <!-- Open Graph / social preview -->
 <meta property="og:type" content="website" />
+<meta property="og:url" content="https://shagarchandro.github.io/shagarchandro-Portfolio/" />
 <meta property="og:title" content="Shagar Chandro — Frontend Developer" />
 <meta property="og:description" content="Clean, responsive, and accessible web experiences built with HTML, CSS, JavaScript and React." />
-<meta property="og:image" content="assets/images/og-image.png" />
+<meta property="og:image" content="https://shagarchandro.github.io/shagarchandro-Portfolio/assets/images/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="assets/images/og-image.png" />
+<meta name="twitter:title" content="Shagar Chandro — Frontend Developer" />
+<meta name="twitter:description" content="Clean, responsive, and accessible web experiences built with HTML, CSS, JavaScript and React." />
+<meta name="twitter:image" content="https://shagarchandro.github.io/shagarchandro-Portfolio/assets/images/og-image.png" />
 
 <link rel="icon" type="image/svg+xml" id="favicon-link" href="assets/images/profile/favicon.svg" />
 <link rel="apple-touch-icon" href="assets/images/profile/favicon.svg" />
@@ -275,6 +278,9 @@
         <p class="section-desc" data-i18n="blog.desc">Notes on frontend development, design and building this very site.</p>
       </div>
       <div class="blog-grid" id="blogGrid"></div>
+      <div style="text-align:center;margin-top:var(--sp-6)">
+        <a href="blog.html" class="btn btn-outline"><i class="fa-solid fa-layer-group"></i> View All Posts</a>
+      </div>
     </div>
   </section>
 
@@ -394,6 +400,13 @@
         </div>
 
         <form class="contact-form-card card reveal" id="contactForm" novalidate>
+          <!-- Honeypot: hidden from real visitors via CSS, but a naive spam
+               bot filling every field will fill this too — caught in
+               js/main.js and the submission is silently dropped. -->
+          <div class="field-hp" aria-hidden="true">
+            <label for="cf-website">Website</label>
+            <input type="text" id="cf-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
           <div class="form-row">
             <div class="field" id="fieldName">
               <label for="cf-name" data-i18n="contact.nameLabel">Your Name</label>
@@ -464,6 +477,10 @@
         <h3 class="footer-heading" data-i18n="footer.newsletter">Newsletter</h3>
         <p class="footer-about" data-i18n="footer.newsletterText">Get occasional updates on new projects and posts.</p>
         <form class="newsletter-form" id="newsletterForm" novalidate>
+          <div class="field-hp" aria-hidden="true">
+            <label for="nl-website">Website</label>
+            <input type="text" id="nl-website" tabindex="-1" autocomplete="off" />
+          </div>
           <input type="email" id="newsletter-email" placeholder="you@example.com" data-i18n-placeholder="footer.newsletterPh" required aria-label="Email address" />
           <button type="submit" class="btn btn-primary btn-sm" aria-label="Subscribe"><i class="fa-solid fa-paper-plane"></i></button>
         </form>
@@ -516,6 +533,17 @@
 </div>
 
 <!-- ===== PWA install banner ===== -->
+<div class="install-banner card" id="updateBanner" hidden>
+  <span class="install-banner-icon"><i class="fa-solid fa-rotate" aria-hidden="true"></i></span>
+  <div class="install-banner-text">
+    <strong data-i18n="update.title">Update available</strong>
+    <span data-i18n="update.text">A new version of this site is ready.</span>
+  </div>
+  <div class="install-banner-actions">
+    <button class="btn btn-primary btn-sm" id="updateReloadBtn" data-i18n="update.btn">Refresh</button>
+  </div>
+</div>
+
 <div class="install-banner card" id="installBanner" hidden>
   <span class="install-banner-icon">SC</span>
   <div class="install-banner-text">
@@ -559,6 +587,10 @@
       <button class="icon-btn" id="testimonialFormClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <form id="testimonialForm" class="site-modal-body">
+      <div class="field-hp" aria-hidden="true">
+        <label for="tf-website">Website</label>
+        <input type="text" id="tf-website" tabindex="-1" autocomplete="off" />
+      </div>
       <div class="field">
         <label for="tf-name" data-i18n="testimonialForm.nameLabel">Your Name</label>
         <input type="text" id="tf-name" required />
