@@ -58,6 +58,19 @@
     document.getElementById('passToggle').innerHTML = `<i class="fa-solid fa-eye${isPass ? '-slash' : ''}"></i>`;
   });
 
+  // Delegated so it also covers password-visibility toggles rendered later
+  // by Security panel / recovery form templates, not just the login screen.
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.pass-toggle[data-toggle-for]');
+    if (!btn) return;
+    const input = document.getElementById(btn.dataset.toggleFor);
+    if (!input) return;
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    btn.innerHTML = `<i class="fa-solid fa-eye${isPass ? '-slash' : ''}"></i>`;
+    btn.setAttribute('aria-label', isPass ? 'Hide password' : 'Show password');
+  });
+
   /* ---- Forgot password (via recovery key) ---- */
   const recoveryOverlay = document.getElementById('recoveryOverlay');
   document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
@@ -99,6 +112,13 @@
     passField.classList.toggle('invalid', !passOk);
     if (!userOk || !passOk) return;
 
+    const lockStatus = AuthStore.getLockoutStatus();
+    if (lockStatus.locked) {
+      const mins = Math.ceil(lockStatus.remainingMs / 60000);
+      Toast.error('Too many failed attempts', `Try again in about ${mins} minute${mins === 1 ? '' : 's'}.`);
+      return;
+    }
+
     const btn = document.getElementById('loginSubmitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Signing in...';
@@ -108,10 +128,17 @@
     btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Log In';
 
     if (!valid) {
-      Toast.error('Login failed', 'Incorrect username or password.');
+      const status = AuthStore.recordFailedAttempt();
+      if (status.locked) {
+        const mins = Math.ceil(status.remainingMs / 60000);
+        Toast.error('Too many failed attempts', `Login locked for about ${mins} minute${mins === 1 ? '' : 's'}.`);
+      } else {
+        Toast.error('Login failed', `Incorrect username or password. ${status.attemptsLeft} attempt${status.attemptsLeft === 1 ? '' : 's'} left before a temporary lockout.`);
+      }
       passField.classList.add('invalid');
       return;
     }
+    AuthStore.resetLockout();
     AuthStore.startSession(remember);
     SecurityLog.record();
     Toast.success('Welcome back', 'Logged in successfully.');
@@ -151,7 +178,15 @@
   (async function boot() {
     await AuthStore.init();
     if (AuthStore.isLoggedIn()) enterApp();
-    else { loginScreen.hidden = false; adminApp.hidden = true; }
+    else {
+      loginScreen.hidden = false;
+      adminApp.hidden = true;
+      const lockStatus = AuthStore.getLockoutStatus();
+      if (lockStatus.locked) {
+        const mins = Math.ceil(lockStatus.remainingMs / 60000);
+        Toast.error('Login temporarily locked', `Too many failed attempts. Try again in about ${mins} minute${mins === 1 ? '' : 's'}.`);
+      }
+    }
   })();
 
   /* ============================ SIDEBAR / ROUTER ============================ */
@@ -236,7 +271,16 @@
     ];
     const daysSince = BackupTracker.daysSinceLastExport();
     const needsBackupReminder = daysSince === null || daysSince >= 14;
+    // Second entry, not the first — the first is this current session
+    // (already recorded by SecurityLog.record() on login), so "last login"
+    // means the one before it.
+    const lastLoginEntry = SecurityLog.list()[1];
     root.innerHTML = `
+      ${lastLoginEntry ? `
+        <p style="color:var(--text-dim);font-size:var(--fs-xs);font-family:var(--font-mono);margin-bottom:var(--sp-4)">
+          <i class="fa-solid fa-clock-rotate-left"></i> Last login: ${fmtDate(lastLoginEntry.date)} · ${escapeHtml(lastLoginEntry.browser)}
+        </p>
+      ` : ''}
       ${needsBackupReminder ? `
         <div class="admin-reminder-banner">
           <i class="fa-solid fa-triangle-exclamation"></i>
@@ -991,6 +1035,14 @@
         </div>
       </div>
 
+      <div class="admin-card card" style="border-color:var(--accent)">
+        <h3><i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> Publish to Live Site</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">Everything above is saved only in <em>this browser</em> — other visitors, and you on another device, still see the content baked into the site's code. To make your changes visible to everyone, generate updated <code>js/data-store.js</code>, <code>rss.xml</code> and <code>sitemap.xml</code> here, replace those three files in your GitHub repo with the downloaded ones, and push. Your private data — inbox messages, newsletter subscribers, and visit counts — is intentionally left out of <code>data-store.js</code>, so it never ends up in a public commit.</p>
+        <div class="data-action-row">
+          <button class="btn btn-primary" id="publishBtn"><i class="fa-solid fa-cloud-arrow-up"></i> Generate Updated Site Files</button>
+        </div>
+      </div>
+
       <div class="admin-card card">
         <h3><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Reset to Defaults</h3>
         <p style="color:var(--text-muted);font-size:var(--fs-sm)">Wipes everything in this browser and restores the original sample content. This cannot be undone — export a backup first if you want to keep your changes.</p>
@@ -1002,7 +1054,7 @@
 
     renderStorageUsageCard();
 
-    document.getElementById('generateRssBtn').addEventListener('click', () => {
+    function buildRssXml() {
       const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const base = 'https://shagarchandro.github.io/shagarchandro-Portfolio';
       const items = (data.blog || []).map(p => `
@@ -1013,7 +1065,7 @@
     <description>${esc(p.excerpt)}</description>
     <pubDate>${new Date(p.date).toUTCString()}</pubDate>
   </item>`).join('');
-      const rss = `<?xml version="1.0" encoding="UTF-8"?>
+      return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
   <title>${esc(data.siteSettings.siteTitle)} — Blog</title>
@@ -1023,22 +1075,13 @@
 </channel>
 </rss>
 `;
-      const blob = new Blob([rss], { type: 'application/rss+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'rss.xml';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      Toast.success('Generated', 'rss.xml downloaded — upload it to replace the one on your host.');
-    });
+    }
 
-    document.getElementById('generateSitemapBtn').addEventListener('click', () => {
+    function buildSitemapXml() {
       const base = 'https://shagarchandro.github.io/shagarchandro-Portfolio';
       const staticUrls = [
         { loc: `${base}/index.html`, freq: 'weekly', priority: '1.0' },
+        { loc: `${base}/blog.html`, freq: 'weekly', priority: '0.7' },
         { loc: `${base}/resume.html`, freq: 'monthly', priority: '0.5' },
         { loc: `${base}/privacy.html`, freq: 'yearly', priority: '0.3' }
       ];
@@ -1054,21 +1097,34 @@
     <changefreq>${u.freq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`).join('');
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+      return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}
 </urlset>
 `;
-      const blob = new Blob([xml], { type: 'application/xml' });
+    }
+
+    function downloadTextFile(filename, content, mime) {
+      const blob = new Blob([content], { type: mime });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'sitemap.xml';
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('generateRssBtn').addEventListener('click', () => {
+      downloadTextFile('rss.xml', buildRssXml(), 'application/rss+xml');
+      Toast.success('Generated', 'rss.xml downloaded — upload it to replace the one on your host.');
+    });
+
+    document.getElementById('generateSitemapBtn').addEventListener('click', () => {
+      downloadTextFile('sitemap.xml', buildSitemapXml(), 'application/xml');
       Toast.success('Generated', 'sitemap.xml downloaded — upload it to replace the one on your host.');
     });
+
 
     document.getElementById('exportBtn').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1112,6 +1168,63 @@
       reader.readAsText(file);
     });
 
+    document.getElementById('publishBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('publishBtn');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+      try {
+        const res = await fetch('../js/data-store.js', { cache: 'no-store' });
+        if (!res.ok) throw new Error('fetch failed');
+        const sourceText = await res.text();
+
+        const markerStart = '/* === DEFAULT_DATA:START === */';
+        const markerEnd = '/* === DEFAULT_DATA:END === */';
+        const startIdx = sourceText.indexOf(markerStart);
+        const endIdx = sourceText.indexOf(markerEnd);
+        if (startIdx === -1 || endIdx === -1) throw new Error('markers missing');
+
+        // Publish everything except private, per-browser runtime data —
+        // inbox messages, newsletter subscriber emails, and visit counters
+        // stay out of the file so they never end up in a public git commit.
+        const publishData = structuredClone(data);
+        publishData.messages = [];
+        publishData.newsletterSubscribers = [];
+        publishData.analytics = {
+          visitors: 0,
+          pageViews: 0,
+          popularPages: (data.analytics?.popularPages || []).map(p => ({ page: p.page, views: 0 }))
+        };
+        publishData.pendingTestimonials = [];
+
+        const newBlock = `${markerStart}\nconst DEFAULT_DATA = ${JSON.stringify(publishData, null, 2)};\n${markerEnd}`;
+        const newSource = sourceText.slice(0, startIdx) + newBlock + sourceText.slice(endIdx + markerEnd.length);
+
+        const blob = new Blob([newSource], { type: 'text/javascript' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data-store.js';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        // Bundle the RSS feed and sitemap in with the same publish action —
+        // both go stale the moment a blog post is added/edited/removed, and
+        // it's easy to forget to regenerate them separately.
+        downloadTextFile('rss.xml', buildRssXml(), 'application/rss+xml');
+        downloadTextFile('sitemap.xml', buildSitemapXml(), 'application/xml');
+
+        Toast.success('Generated', '3 files downloaded (data-store.js, rss.xml, sitemap.xml) — replace all three in your GitHub repo, commit, and push. Once GitHub Pages redeploys, everyone sees your changes.');
+      } catch (err) {
+        Toast.error('Couldn\'t generate file', 'Reload the admin panel and try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    });
+
     document.getElementById('resetDataBtn').addEventListener('click', () => {
       confirmAction('Reset ALL data to the original defaults? This cannot be undone.', () => {
         data = DataStore.reset();
@@ -1130,16 +1243,31 @@
       <form id="passForm" class="admin-card card">
         <h3>Change Password</h3>
         <div class="admin-form-grid">
-          <div class="field full"><label>Current Password</label><input type="password" name="currentPass" autocomplete="current-password" required /></div>
+          <div class="field full">
+            <label>Current Password</label>
+            <div class="password-wrap">
+              <input type="password" name="currentPass" id="currentPassInput" autocomplete="current-password" required />
+              <button type="button" class="pass-toggle" data-toggle-for="currentPassInput" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
+          </div>
           <div class="field">
             <label>New Password</label>
-            <input type="password" name="newPass" id="newPassInput" minlength="8" autocomplete="new-password" required />
+            <div class="password-wrap">
+              <input type="password" name="newPass" id="newPassInput" minlength="8" autocomplete="new-password" required />
+              <button type="button" class="pass-toggle" data-toggle-for="newPassInput" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
             <div class="pass-strength" id="passStrengthMeter">
               <div class="pass-strength-track"><div class="pass-strength-fill" id="passStrengthFill"></div></div>
               <span class="pass-strength-label" id="passStrengthLabel"></span>
             </div>
           </div>
-          <div class="field"><label>Confirm New Password</label><input type="password" name="confirmPass" autocomplete="new-password" required /></div>
+          <div class="field">
+            <label>Confirm New Password</label>
+            <div class="password-wrap">
+              <input type="password" name="confirmPass" id="confirmPassInput" autocomplete="new-password" required />
+              <button type="button" class="pass-toggle" data-toggle-for="confirmPassInput" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
+          </div>
         </div>
         <p style="color:var(--text-dim);font-size:var(--fs-xs);margin-bottom:var(--sp-4)"><i class="fa-solid fa-circle-info"></i> Use at least 8 characters, mixing uppercase, lowercase, numbers and symbols for a stronger password.</p>
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-key"></i> Update Password</button>

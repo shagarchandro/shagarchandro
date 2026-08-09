@@ -76,11 +76,17 @@
       </div>
       <div class="field">
         <label for="recovery-newpass">New Password</label>
-        <input type="password" id="recovery-newpass" minlength="8" required />
+        <div class="password-wrap">
+          <input type="password" id="recovery-newpass" minlength="8" required />
+          <button type="button" class="pass-toggle" data-toggle-for="recovery-newpass" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+        </div>
       </div>
       <div class="field">
         <label for="recovery-confirm">Confirm New Password</label>
-        <input type="password" id="recovery-confirm" minlength="8" required />
+        <div class="password-wrap">
+          <input type="password" id="recovery-confirm" minlength="8" required />
+          <button type="button" class="pass-toggle" data-toggle-for="recovery-confirm" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+        </div>
       </div>
       <p style="color:var(--text-dim);font-size:var(--fs-xs)">Don't have a recovery key? One must be generated in advance from Security → Account Recovery Key while logged in — without it, this browser's admin data would need to be reset from scratch.</p>
       <button type="submit" class="btn btn-primary btn-block" style="margin-top:var(--sp-4)"><i class="fa-solid fa-unlock"></i> Reset Password</button>

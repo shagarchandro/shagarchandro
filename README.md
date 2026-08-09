@@ -106,14 +106,25 @@ database. That means:
 - All data lives in the visitor's own browser. It does **not** sync between
   devices or visitors, and clearing browser data resets everything back to
   the defaults baked into `data-store.js`.
+- **To make your admin edits visible to every visitor, in every browser:**
+  go to **Admin → Data Management → Publish to Live Site** and click
+  *Generate Updated data-store.js*. This downloads a copy of
+  `js/data-store.js` with `DEFAULT_DATA` replaced by your current content
+  (private data — inbox messages, newsletter subscriber emails, and visit
+  counters — is deliberately left out, so it never lands in a public commit).
+  Replace `js/data-store.js` in your repo with the downloaded file, commit,
+  and push. Once GitHub Pages redeploys, that becomes the new baseline for
+  everyone, in any browser. There's no live sync — each publish is a
+  redeploy — but it needs no account, no cost, and no backend.
 - Contact form submissions are stored the same way and show up under
   **Admin → Messages**. There is no email delivery — wire up a service like
   Formspree, EmailJS or your own backend in `js/main.js` (`renderContact`)
   if you need real email notifications.
-- For a real multi-user production site, replace `DataStore`'s
-  localStorage calls with API calls to a real backend — the rest of the
-  code (rendering, forms, admin UI) can stay as-is since it all goes through
-  that one module.
+- For real-time sync without redeploying (e.g. multiple admins, or wanting
+  changes to appear instantly for visitors already on the site), replace
+  `DataStore`'s localStorage calls with API calls to a real backend — the
+  rest of the code (rendering, forms, admin UI) can stay as-is since it all
+  goes through that one module.
 
 ## 4. Customizing content
 

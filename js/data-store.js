@@ -12,10 +12,19 @@ const AUTH_KEY = 'portfolioAuth';
 const SESSION_KEY = 'portfolioSession';
 const LOGIN_HISTORY_KEY = 'portfolioLoginHistory';
 const BACKUP_META_KEY = 'portfolioBackupMeta';
+const LOGIN_LOCKOUT_KEY = 'portfolioLoginLockout';
 
 /* Full JSON structure for every section. This exact shape is what gets
    persisted to localStorage under STORAGE_KEY. See /data/schema.json for a
-   documented, standalone copy of this same structure. */
+   documented, standalone copy of this same structure.
+
+   The START/END markers below are load-bearing: the Admin panel's
+   "Publish to Live Site" button (Data Management) does a text-splice
+   between them to write your edited content back into this exact file,
+   so anyone visiting the site — in any browser, with no admin login and
+   an empty localStorage — sees your latest content as soon as you commit
+   and push the regenerated file. Don't remove or reformat the markers. */
+/* === DEFAULT_DATA:START === */
 const DEFAULT_DATA = {
   siteSettings: {
     siteTitle: 'Shagar Chandro — Frontend Developer',
@@ -220,6 +229,7 @@ const DEFAULT_DATA = {
     ]
   }
 };
+/* === DEFAULT_DATA:END === */
 
 const DEFAULT_AUTH = {
   username: 'admin',
@@ -475,6 +485,47 @@ const AuthStore = {
   logout() {
     localStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem(SESSION_KEY);
+  },
+
+  /* ---- Failed-login throttling ----
+     This can't stop someone with devtools access to this browser (they
+     could just read the password hash directly), but it does slow down
+     repeated guessing through the login form itself — the only realistic
+     threat on a public login page with no server behind it. Lockout time
+     doubles with each fresh run of failures (30s, 60s, 120s... capped at
+     30 min) and resets entirely on a successful login. */
+  MAX_ATTEMPTS_BEFORE_LOCKOUT: 5,
+  BASE_LOCKOUT_MS: 30 * 1000,
+  MAX_LOCKOUT_MS: 30 * 60 * 1000,
+
+  _getLockoutState() {
+    const raw = localStorage.getItem(LOGIN_LOCKOUT_KEY);
+    return raw ? JSON.parse(raw) : { failedAttempts: 0, lockedUntil: 0, lockoutRounds: 0 };
+  },
+
+  /** Returns { locked: boolean, remainingMs: number, attemptsLeft: number }. */
+  getLockoutStatus() {
+    const state = this._getLockoutState();
+    const remainingMs = state.lockedUntil - Date.now();
+    if (remainingMs > 0) return { locked: true, remainingMs, attemptsLeft: 0 };
+    return { locked: false, remainingMs: 0, attemptsLeft: Math.max(0, this.MAX_ATTEMPTS_BEFORE_LOCKOUT - state.failedAttempts) };
+  },
+
+  recordFailedAttempt() {
+    const state = this._getLockoutState();
+    state.failedAttempts += 1;
+    if (state.failedAttempts >= this.MAX_ATTEMPTS_BEFORE_LOCKOUT) {
+      const lockoutMs = Math.min(this.BASE_LOCKOUT_MS * Math.pow(2, state.lockoutRounds), this.MAX_LOCKOUT_MS);
+      state.lockedUntil = Date.now() + lockoutMs;
+      state.failedAttempts = 0;
+      state.lockoutRounds += 1;
+    }
+    localStorage.setItem(LOGIN_LOCKOUT_KEY, JSON.stringify(state));
+    return this.getLockoutStatus();
+  },
+
+  resetLockout() {
+    localStorage.removeItem(LOGIN_LOCKOUT_KEY);
   }
 };
 

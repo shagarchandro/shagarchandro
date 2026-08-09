@@ -783,7 +783,7 @@
           <img src="${escapeAttr(post.cover)}" alt="${escapeAttr(post.title)}" loading="lazy" data-shimmer />
         </a>
         <div class="blog-card-body">
-          <span class="blog-card-date">${escapeHtml(formatDate(post.date))}</span>
+          <span class="blog-card-date">${escapeHtml(formatDate(post.date))} · ${readingTime(post)} min read</span>
           <h3 class="blog-card-title">${escapeHtml(post.title)}</h3>
           <p class="blog-card-excerpt">${escapeHtml(post.excerpt)}</p>
           <a class="blog-card-link" href="blog.html?post=${encodeURIComponent(post.slug || post.id)}">Read more <i class="fa-solid fa-arrow-right"></i></a>
@@ -796,6 +796,12 @@
     const d = new Date(iso);
     if (isNaN(d)) return iso;
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  // Matches the reading-time estimate on the single-post page (js/blog.js)
+  // so the number shown on the homepage teaser cards doesn't disagree.
+  function readingTime(post) {
+    const words = (post.content || '').trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.round(words / 200));
   }
 
   /* ============================ FAQ ============================ */
