@@ -348,17 +348,46 @@
       section.style.display = 'none';
       return;
     }
-    track.innerHTML = data.clients.map((c, i) => {
+    section.style.display = '';
+
+    const logoCard = (c, i, animated) => {
       const hasUrl = c.url && c.url.trim();
       const tag = hasUrl ? 'a' : 'div';
       const linkAttrs = hasUrl ? `href="${escapeAttr(c.url)}" target="_blank" rel="noopener noreferrer"` : '';
+      const magneticClass = animated ? '' : ' magnetic';
+      const delay = animated ? '' : ` style="transition-delay:${i * 60}ms"`;
       return `
-        <${tag} class="client-logo-card reveal magnetic" style="transition-delay:${i * 60}ms" ${linkAttrs} aria-label="${hasUrl ? escapeAttr(c.name) : ''}">
+        <${tag} class="client-logo-card reveal${magneticClass}"${delay} ${linkAttrs} aria-label="${escapeAttr(c.name)}" title="${escapeAttr(c.name)}">
           <img class="client-logo" src="${escapeAttr(c.logo)}" alt="${escapeAttr(c.name)}" loading="lazy" data-shimmer />
         </${tag}>
       `;
-    }).join('');
-    requestAnimationFrame(() => { observeReveal(); bindShimmer(); bindMagnetic(); });
+    };
+
+    // A handful of logos reads better as a calm, static row (also plays
+    // nicer with the magnetic hover effect used elsewhere on the page).
+    // Once there are enough to feel like a real client list, switch to a
+    // continuous marquee — the common "worked with" pattern — with the
+    // logo set duplicated so the loop has no visible seam. Respects
+    // prefers-reduced-motion by falling back to the static row.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const useMarquee = data.clients.length >= 6 && !reduceMotion;
+
+    if (useMarquee) {
+      track.classList.add('clients-track-marquee');
+      const oneSet = data.clients.map((c, i) => logoCard(c, i, true)).join('');
+      // Duplicated once is enough for a seamless CSS-only loop (see
+      // .clients-track-marquee's -50% keyframe in premium.css).
+      track.innerHTML = `<div class="clients-marquee-group">${oneSet}</div><div class="clients-marquee-group" aria-hidden="true">${oneSet}</div>`;
+    } else {
+      track.classList.remove('clients-track-marquee');
+      track.innerHTML = data.clients.map((c, i) => logoCard(c, i, false)).join('');
+    }
+
+    requestAnimationFrame(() => {
+      observeReveal();
+      bindShimmer();
+      if (!useMarquee) bindMagnetic();
+    });
   }
 
   /* ============================ EXPERIENCE / EDUCATION ============================ */

@@ -1313,11 +1313,41 @@
         </p>
         <div id="loginActivityList"></div>
       </div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-list-check"></i> Recent Content Activity</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">
+          Every add, edit and delete across Projects, Blog, Skills and the rest of the content sections — a quick
+          "what did I just change" trail before you hit Publish.
+        </p>
+        <div id="contentActivityList"></div>
+        <div class="data-action-row" style="margin-top:var(--sp-4)">
+          <button class="btn btn-outline btn-sm" id="clearActivityLogBtn"><i class="fa-solid fa-trash"></i> Clear Log</button>
+        </div>
+      </div>
     `;
     const activity = SecurityLog.list();
     document.getElementById('loginActivityList').innerHTML = activity.length
       ? `<ul class="analytics-list">${activity.map(a => `<li><span>${escapeHtml(a.browser)} · ${escapeHtml(a.platform)}</span><span style="font-family:var(--font-mono);color:var(--text-dim)">${fmtDate(a.date)}</span></li>`).join('')}</ul>`
       : `<div class="admin-empty"><i class="fa-solid fa-clock-rotate-left"></i>No login activity recorded yet.</div>`;
+
+    function renderContentActivity() {
+      const log = ActivityLog.list();
+      const actionIcon = { added: 'fa-plus', updated: 'fa-pen', deleted: 'fa-trash' };
+      const actionVerb = { added: 'Added', updated: 'Updated', deleted: 'Deleted' };
+      document.getElementById('contentActivityList').innerHTML = log.length
+        ? `<ul class="analytics-list">${log.map(e => `<li><span><i class="fa-solid ${actionIcon[e.action] || 'fa-pen'}" style="width:16px;color:${e.action === 'deleted' ? 'var(--danger)' : e.action === 'added' ? 'var(--success)' : 'var(--text-muted)'}"></i> ${actionVerb[e.action] || e.action} ${escapeHtml(e.section)}: ${escapeHtml(e.name)}</span><span style="font-family:var(--font-mono);color:var(--text-dim)">${fmtDate(e.date)}</span></li>`).join('')}</ul>`
+        : `<div class="admin-empty"><i class="fa-solid fa-list-check"></i>No content changes recorded yet.</div>`;
+    }
+    renderContentActivity();
+    document.getElementById('clearActivityLogBtn').addEventListener('click', () => {
+      confirmAction('Clear the content activity log? This only clears the log, not your actual content.', () => {
+        ActivityLog.clear();
+        renderContentActivity();
+        Toast.success('Cleared', 'Content activity log cleared.');
+      });
+    });
+
     function passwordStrength(pwd) {
       let score = 0;
       if (pwd.length >= 8) score++;

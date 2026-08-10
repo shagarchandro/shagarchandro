@@ -13,6 +13,7 @@ const SESSION_KEY = 'portfolioSession';
 const LOGIN_HISTORY_KEY = 'portfolioLoginHistory';
 const BACKUP_META_KEY = 'portfolioBackupMeta';
 const LOGIN_LOCKOUT_KEY = 'portfolioLoginLockout';
+const ACTIVITY_LOG_KEY = 'portfolioActivityLog';
 
 /* Full JSON structure for every section. This exact shape is what gets
    persisted to localStorage under STORAGE_KEY. See /data/schema.json for a
@@ -327,21 +328,27 @@ const DataStore = {
     item.id = item.id || uid(sectionKey);
     data[sectionKey].push(item);
     this.set(data);
+    if (typeof ActivityLog !== 'undefined') ActivityLog.record('added', sectionKey, item);
     return data[sectionKey];
   },
 
   updateItem(sectionKey, id, updatedItem) {
     const data = this.get();
     const idx = data[sectionKey].findIndex(i => i.id === id);
-    if (idx !== -1) data[sectionKey][idx] = { ...data[sectionKey][idx], ...updatedItem, id };
+    if (idx !== -1) {
+      data[sectionKey][idx] = { ...data[sectionKey][idx], ...updatedItem, id };
+      if (typeof ActivityLog !== 'undefined') ActivityLog.record('updated', sectionKey, data[sectionKey][idx]);
+    }
     this.set(data);
     return data[sectionKey];
   },
 
   deleteItem(sectionKey, id) {
     const data = this.get();
+    const removed = data[sectionKey].find(i => i.id === id);
     data[sectionKey] = data[sectionKey].filter(i => i.id !== id);
     this.set(data);
+    if (removed && typeof ActivityLog !== 'undefined') ActivityLog.record('deleted', sectionKey, removed);
     return data[sectionKey];
   },
 
@@ -559,6 +566,47 @@ const SecurityLog = {
       platform: typeof navigator !== 'undefined' && navigator.platform ? navigator.platform : 'Unknown'
     });
     localStorage.setItem(LOGIN_HISTORY_KEY, JSON.stringify(entries.slice(0, this.MAX_ENTRIES)));
+  }
+};
+
+/* ---------- Content activity log ----------
+   Tracks add/edit/delete across every CRUD section (projects, blog, skills,
+   etc.) so the admin has a quick "what did I just change" trail before
+   hitting Publish — separate from SecurityLog above, which only tracks
+   logins. */
+const ActivityLog = {
+  MAX_ENTRIES: 40,
+
+  SECTION_LABELS: {
+    projects: 'Project', skills: 'Skill', experience: 'Experience', education: 'Education',
+    certificates: 'Certificate', gallery: 'Gallery Item', services: 'Service', clients: 'Client',
+    testimonials: 'Testimonial', faqs: 'FAQ', blog: 'Blog Post'
+  },
+
+  /** Best-effort human-readable name for any item shape, without needing
+      each CRUD config to declare which field is the "title". */
+  displayName(item) {
+    return (item && (item.title || item.name || item.question || item.role || item.degree)) || 'item';
+  },
+
+  list() {
+    const raw = localStorage.getItem(ACTIVITY_LOG_KEY);
+    return raw ? JSON.parse(raw) : [];
+  },
+
+  record(action, sectionKey, item) {
+    const entries = this.list();
+    entries.unshift({
+      date: new Date().toISOString(),
+      action, // 'added' | 'updated' | 'deleted'
+      section: this.SECTION_LABELS[sectionKey] || sectionKey,
+      name: this.displayName(item)
+    });
+    localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(entries.slice(0, this.MAX_ENTRIES)));
+  },
+
+  clear() {
+    localStorage.removeItem(ACTIVITY_LOG_KEY);
   }
 };
 

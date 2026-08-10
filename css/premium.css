@@ -630,11 +630,39 @@ img[data-shimmer].loaded {
   object-fit: contain;
 }
 
+/* ---------- Client logo strip: continuous marquee (6+ logos) ---------- */
+.clients-track-marquee {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow: hidden;
+  width: 100%;
+  /* Fade the edges so logos don't appear to cut off abruptly. */
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.clients-marquee-group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-shrink: 0;
+  padding-right: var(--sp-5);
+  animation: clientsMarquee 28s linear infinite;
+}
+.clients-track-marquee:hover .clients-marquee-group {
+  animation-play-state: paused;
+}
+@keyframes clientsMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
 @media (max-width: 680px) {
   .lang-toggle .lang-toggle-full { display: none; }
   .clients-track { gap: var(--sp-4); }
   .client-logo-card { padding: var(--sp-2) var(--sp-3); }
   .client-logo { height: 32px; }
+  .clients-marquee-group { animation-duration: 18s; }
 }
 
 /* ---------- Footer newsletter signup ---------- */
