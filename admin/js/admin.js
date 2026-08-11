@@ -98,6 +98,28 @@
     Toast.success('Password reset', 'Your recovery key has been used and is no longer valid — log in with your new password.');
   });
 
+  /* ---- Simple math CAPTCHA, shown after repeated failed attempts ----
+     A lightweight extra step against basic automated form-filling — not
+     meant to stop a determined attacker (nothing client-side really can),
+     just to add friction once the failure count suggests it isn't a
+     one-off typo. */
+  let captchaAnswer = null;
+  function newCaptchaChallenge() {
+    const a = 2 + Math.floor(Math.random() * 8);
+    const b = 2 + Math.floor(Math.random() * 8);
+    captchaAnswer = a + b;
+    document.getElementById('loginCaptchaLabel').textContent = `Verification — what is ${a} + ${b}?`;
+    document.getElementById('login-captcha').value = '';
+  }
+  function syncCaptchaVisibility() {
+    const status = AuthStore.getLockoutStatus();
+    const field = document.getElementById('loginCaptchaField');
+    const needsCaptcha = !status.locked && status.attemptsLeft <= 3 && status.attemptsLeft > 0;
+    field.hidden = !needsCaptcha;
+    if (needsCaptcha) newCaptchaChallenge();
+  }
+  syncCaptchaVisibility();
+
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('login-username').value.trim();
@@ -119,6 +141,23 @@
       return;
     }
 
+    const captchaField = document.getElementById('loginCaptchaField');
+    if (!captchaField.hidden) {
+      const answer = Number(document.getElementById('login-captcha').value.trim());
+      if (answer !== captchaAnswer) {
+        captchaField.classList.add('invalid');
+        Toast.error('Verification failed', 'That answer is incorrect — try the new question.');
+        const status = AuthStore.recordFailedAttempt();
+        if (status.locked) {
+          const mins = Math.ceil(status.remainingMs / 60000);
+          Toast.error('Too many failed attempts', `Login locked for about ${mins} minute${mins === 1 ? '' : 's'}.`);
+        }
+        syncCaptchaVisibility();
+        return;
+      }
+      captchaField.classList.remove('invalid');
+    }
+
     const btn = document.getElementById('loginSubmitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Signing in...';
@@ -129,6 +168,7 @@
 
     if (!valid) {
       const status = AuthStore.recordFailedAttempt();
+      syncCaptchaVisibility();
       if (status.locked) {
         const mins = Math.ceil(status.remainingMs / 60000);
         Toast.error('Too many failed attempts', `Login locked for about ${mins} minute${mins === 1 ? '' : 's'}.`);
@@ -739,6 +779,12 @@
   /* ============================ WEBSITE SETTINGS ============================ */
   function renderWebsite(root) {
     const s = data.siteSettings;
+    const sv = s.sectionVisibility || {};
+    const SECTION_LABELS = {
+      about: 'About', skills: 'Skills', clients: 'Worked With (Clients)', projects: 'Projects',
+      blog: 'Blog', services: 'Services', experience: 'Experience & Education', certificates: 'Certificates',
+      gallery: 'Gallery', testimonials: 'Testimonials', faqs: 'FAQ', contact: 'Contact'
+    };
     root.innerHTML = `
       <div class="admin-panel-head"><div><h2>Website Settings</h2><p>Logo, favicon, site title and footer text.</p></div>${resetButtonHtml('Website Settings')}</div>
       <form id="websiteForm" class="admin-card card">
@@ -763,6 +809,38 @@
         </div>
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Website Settings</button>
       </form>
+
+      <div class="admin-card card" style="border-color:var(--warning)">
+        <h3><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i> Maintenance Mode</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">When on, everyone except you (logged in, this browser) sees a simple holding page instead of the site — the admin panel stays reachable either way.</p>
+        <form id="maintenanceForm" class="admin-form-grid" style="margin-top:var(--sp-4)">
+          <div class="field full">
+            <label class="remember-row" style="margin:0">
+              <input type="checkbox" name="maintenanceMode" ${s.maintenanceMode ? 'checked' : ''} />
+              <span>Show the maintenance page to visitors</span>
+            </label>
+          </div>
+          <div class="field full">
+            <label>Message shown to visitors</label>
+            <textarea name="maintenanceMessage" rows="2">${escapeHtml(s.maintenanceMessage)}</textarea>
+          </div>
+          <div class="field full"><button class="btn btn-outline" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Maintenance Settings</button></div>
+        </form>
+      </div>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-eye"></i> Section Visibility</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">Hide a section from the live site without deleting its content — useful while a section isn't ready yet (e.g. no clients or testimonials to show).</p>
+        <form id="visibilityForm" style="margin-top:var(--sp-4);display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--sp-3)">
+          ${Object.entries(SECTION_LABELS).map(([key, label]) => `
+            <label class="remember-row" style="margin:0">
+              <input type="checkbox" name="${key}" ${sv[key] !== false ? 'checked' : ''} />
+              <span>${escapeHtml(label)}</span>
+            </label>
+          `).join('')}
+          <div style="grid-column:1/-1"><button class="btn btn-outline" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Section Visibility</button></div>
+        </form>
+      </div>
     `;
     document.getElementById('faviconInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
@@ -773,6 +851,14 @@
     });
     bindSimpleForm(root, 'websiteForm', (fd) => {
       DataStore.update('siteSettings', { ...data.siteSettings, siteTitle: fd.get('siteTitle'), logoText: fd.get('logoText'), favicon: fd.get('favicon'), footerText: fd.get('footerText'), cookieConsentEnabled: fd.get('cookieConsentEnabled') === 'on' });
+    });
+    bindSimpleForm(root, 'maintenanceForm', (fd) => {
+      DataStore.update('siteSettings', { ...data.siteSettings, maintenanceMode: fd.get('maintenanceMode') === 'on', maintenanceMessage: fd.get('maintenanceMessage') });
+    });
+    bindSimpleForm(root, 'visibilityForm', (fd) => {
+      const sectionVisibility = {};
+      Object.keys(SECTION_LABELS).forEach(key => { sectionVisibility[key] = fd.get(key) === 'on'; });
+      DataStore.update('siteSettings', { ...data.siteSettings, sectionVisibility });
     });
     bindResetButton('siteSettings', 'Website Settings', renderWebsite, ['siteTitle', 'logoText', 'favicon', 'footerText', 'cookieConsentEnabled']);
   }

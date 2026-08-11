@@ -6,7 +6,7 @@
    edited in /admin is picked up quickly while still working offline.
    ========================================================================== */
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v10';
 const CACHE_NAME = `portfolio-shell-${CACHE_VERSION}`;
 
 const APP_SHELL = [

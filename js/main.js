@@ -11,6 +11,32 @@
   const data = DataStore.get();
   DataStore.trackVisit('Home');
 
+  /* ============================ MAINTENANCE MODE ============================
+     When enabled from Admin → Website Settings, ordinary visitors see a
+     simple holding page instead of the full site. A logged-in admin (same
+     browser/session used for the Admin panel) still sees the real site, with
+     a small banner as a reminder it's on — otherwise there'd be no way to
+     preview or edit the site while it's "down" for everyone else. */
+  if (data.siteSettings.maintenanceMode && !AuthStore.isLoggedIn()) {
+    document.title = `${data.siteSettings.siteTitle} — Maintenance`;
+    document.body.innerHTML = `
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;background:var(--bg);color:var(--text);font-family:var(--font-body);gap:1.25rem">
+        <div style="width:64px;height:64px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#0b0f17;font-family:var(--font-mono);font-weight:800;font-size:1.4rem">${escapeHtml(data.siteSettings.logoText || 'SC')}</div>
+        <h1 style="font-family:var(--font-display);font-size:clamp(1.5rem,4vw,2.2rem);margin:0">${escapeHtml(data.siteSettings.siteTitle)}</h1>
+        <p style="color:var(--text-muted);max-width:420px;margin:0">${escapeHtml(data.siteSettings.maintenanceMessage || "We're making some updates. Please check back shortly.")}</p>
+      </div>
+    `;
+    return;
+  }
+  if (data.siteSettings.maintenanceMode && AuthStore.isLoggedIn()) {
+    document.addEventListener('DOMContentLoaded', () => {
+      const bar = document.createElement('div');
+      bar.textContent = '⚠ Maintenance mode is ON — visitors see a holding page instead of this site. Turn it off from Admin → Website Settings when you\'re ready.';
+      bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--warning,#f59e0b);color:#1a1200;font-family:var(--font-mono);font-size:0.8rem;text-align:center;padding:8px 12px;';
+      document.body.prepend(bar);
+    });
+  }
+
   /* ============================ THEME ============================ */
   const html = document.documentElement;
   // Respect the OS/browser color-scheme preference on a visitor's very
@@ -88,6 +114,31 @@
     if (s.fontFamily) {
       rootStyle.setProperty('--font-body', s.fontFamily);
     }
+  }
+
+  /* ============================ SECTION VISIBILITY ============================
+     Lets Admin → Website Settings hide whole sections (without deleting the
+     underlying content) — e.g. temporarily pull "Testimonials" while
+     waiting on more reviews. Hides the section itself plus any nav link
+     (desktop nav, mobile menu, footer) pointing at it, so there's no dead
+     link left behind. */
+  function applySectionVisibility() {
+    const visibility = data.siteSettings.sectionVisibility || {};
+    const SECTION_ANCHORS = {
+      about: 'about', skills: 'skills', clients: 'clients', projects: 'projects',
+      blog: 'blog', services: 'services', experience: 'experience', certificates: 'certificates',
+      gallery: 'gallery', testimonials: 'testimonials', faqs: 'faq', contact: 'contact'
+    };
+    Object.entries(SECTION_ANCHORS).forEach(([key, anchorId]) => {
+      if (visibility[key] === false) {
+        const section = document.getElementById(anchorId);
+        if (section) section.style.display = 'none';
+        document.querySelectorAll(`a[href="#${anchorId}"]`).forEach(link => {
+          const li = link.closest('li');
+          (li || link).style.display = 'none';
+        });
+      }
+    });
   }
 
   /* ============================ HERO ============================ */
@@ -1303,6 +1354,11 @@
     renderTestimonials();
     renderFAQ();
     renderContact();
+    // Runs after the render*() calls above — some of them (renderClients,
+    // for one) set a section's display based on whether it has data, so an
+    // explicit "hide this section" from Website Settings has to be applied
+    // last or a data-driven render could re-show it.
+    applySectionVisibility();
     initNav();
     initScrollUtils();
     initLoader();

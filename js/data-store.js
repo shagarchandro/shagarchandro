@@ -36,7 +36,14 @@ const DEFAULT_DATA = {
     secondaryColor: '#5eead4',
     backgroundColor: '#0b0f17',
     fontFamily: "'Space Grotesk', sans-serif",
-    cookieConsentEnabled: true
+    cookieConsentEnabled: true,
+    maintenanceMode: false,
+    maintenanceMessage: "We're making some updates. Please check back shortly.",
+    sectionVisibility: {
+      about: true, skills: true, clients: true, projects: true, blog: true,
+      services: true, experience: true, certificates: true, gallery: true,
+      testimonials: true, faqs: true, contact: true
+    }
   },
 
   profile: {
@@ -280,11 +287,31 @@ const DataStore = {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   },
 
-  /** Shallow-merge top level keys, keep arrays/objects from saved data if present. */
+  /** Merge saved data over defaults. Top-level keys come from saved data
+      when present; for plain-object settings (siteSettings, integrations,
+      etc. — not arrays) this also merges one level deeper, so a field
+      added to DEFAULT_DATA in a later update (e.g.
+      siteSettings.sectionVisibility) doesn't silently vanish just because
+      someone already has an older siteSettings object saved. Arrays
+      (projects, blog, skills...) are left as full replacements — merging
+      those item-by-item would be the wrong behavior. */
   _mergeDefaults(defaults, saved) {
     const out = structuredClone(defaults);
+    const isPlainObject = v => v && typeof v === 'object' && !Array.isArray(v);
     for (const key of Object.keys(defaults)) {
-      if (saved[key] !== undefined) out[key] = saved[key];
+      if (saved[key] === undefined) continue;
+      const defVal = defaults[key];
+      const savedVal = saved[key];
+      if (isPlainObject(defVal) && isPlainObject(savedVal)) {
+        out[key] = { ...defVal, ...savedVal };
+        for (const subKey of Object.keys(defVal)) {
+          if (isPlainObject(defVal[subKey]) && isPlainObject(savedVal[subKey])) {
+            out[key][subKey] = { ...defVal[subKey], ...savedVal[subKey] };
+          }
+        }
+      } else {
+        out[key] = savedVal;
+      }
     }
     return out;
   },

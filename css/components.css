@@ -156,6 +156,7 @@
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #0b0f17;
   font-weight: 800;
+  transition: box-shadow var(--dur-fast) var(--ease);
 }
 .logo .logo-dot {
   color: var(--accent);
