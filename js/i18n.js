@@ -83,6 +83,7 @@ const TRANSLATIONS = {
   'contact.email': { en: 'EMAIL', bn: 'ইমেইল' },
   'contact.address': { en: 'ADDRESS', bn: 'ঠিকানা' },
   'contact.mapLink': { en: 'Open in Google Maps', bn: 'গুগল ম্যাপে দেখুন' },
+  'contact.saveContact': { en: 'Save Contact', bn: 'কন্টাক্ট সেভ করুন' },
   'contact.nameLabel': { en: 'Your Name', bn: 'আপনার নাম' },
   'contact.namePh': { en: 'John Doe', bn: 'আপনার নাম লিখুন' },
   'contact.emailLabel': { en: 'Your Email', bn: 'আপনার ইমেইল' },

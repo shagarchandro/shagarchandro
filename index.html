@@ -31,7 +31,7 @@
 <meta name="theme-color" content="#0b0f17" />
 
 <!-- Structured data for richer search results -->
-<script type="application/ld+json">
+<script type="application/ld+json" id="personSchema">
 {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -398,6 +398,9 @@
           <a id="contactMapLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="margin-top:var(--sp-3)">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> <span data-i18n="contact.mapLink">Open in Google Maps</span>
           </a>
+          <button type="button" id="saveContactBtn" class="btn btn-outline btn-sm" style="margin-top:var(--sp-3);margin-left:var(--sp-3)">
+            <i class="fa-solid fa-address-card"></i> <span data-i18n="contact.saveContact">Save Contact</span>
+          </button>
         </div>
 
         <form class="contact-form-card card reveal" id="contactForm" novalidate>

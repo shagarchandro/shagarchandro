@@ -178,6 +178,13 @@ const DEFAULT_DATA = {
     }
   ],
 
+  /* Approved, publicly visible blog comments. Held separately from
+     pendingComments (below) — new visitor submissions land there first and
+     only move here once an admin approves them, same moderation pattern as
+     testimonials/pendingTestimonials. */
+  comments: [],
+  pendingComments: [],
+
   contact: {
     phone: '+8801305144356',
     email: 'mbs200361@gmail.com',
@@ -607,7 +614,7 @@ const ActivityLog = {
   SECTION_LABELS: {
     projects: 'Project', skills: 'Skill', experience: 'Experience', education: 'Education',
     certificates: 'Certificate', gallery: 'Gallery Item', services: 'Service', clients: 'Client',
-    testimonials: 'Testimonial', faqs: 'FAQ', blog: 'Blog Post'
+    testimonials: 'Testimonial', faqs: 'FAQ', blog: 'Blog Post', comments: 'Comment'
   },
 
   /** Best-effort human-readable name for any item shape, without needing

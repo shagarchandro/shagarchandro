@@ -255,6 +255,7 @@
     skills: 'Skills', projects: 'Projects', experience: 'Experience', education: 'Education',
     certificates: 'Certificates', gallery: 'Gallery', services: 'Services', clients: 'Clients', testimonials: 'Testimonials',
     pendingTestimonials: 'Testimonial Requests',
+    comments: 'Comments',
     blog: 'Blog', faqs: 'FAQ',
     contact: 'Contact Information', social: 'Social Media', integrations: 'Integrations', messages: 'Messages',
     newsletter: 'Newsletter Subscribers',
@@ -269,6 +270,7 @@
     services: () => renderCrud('services', servicesConfig), testimonials: () => renderCrud('testimonials', testimonialsConfig),
     clients: () => renderCrud('clients', clientsConfig),
     pendingTestimonials: renderPendingTestimonials,
+    comments: renderComments,
     blog: () => renderCrud('blog', blogConfig), faqs: () => renderCrud('faqs', faqsConfig),
     contact: renderContact, social: renderSocial, integrations: renderIntegrations, messages: renderMessages,
     newsletter: renderNewsletter,
@@ -296,6 +298,13 @@
     if (pendingBadge) {
       pendingBadge.hidden = pending === 0;
       pendingBadge.textContent = pending;
+    }
+
+    const pendingComments = (data.pendingComments || []).length;
+    const commentsBadge = document.getElementById('commentsBadge');
+    if (commentsBadge) {
+      commentsBadge.hidden = pendingComments === 0;
+      commentsBadge.textContent = pendingComments;
     }
   }
 
@@ -529,44 +538,102 @@
     const c = data.contact;
     root.innerHTML = `
       <div class="admin-panel-head"><div><h2>Contact Information</h2><p>Shown in the Contact section and footer.</p></div>${resetButtonHtml('Contact Info')}</div>
-      <form id="contactForm" class="admin-card card">
+      <form id="contactForm" class="admin-card card" novalidate>
         <div class="admin-form-grid">
-          <div class="field"><label>Phone</label><input name="phone" value="${escapeHtml(c.phone)}" required /></div>
-          <div class="field"><label>Email</label><input name="email" type="email" value="${escapeHtml(c.email)}" required /></div>
+          <div class="field" id="contactPhoneField"><label>Phone</label><input name="phone" value="${escapeHtml(c.phone)}" required /><span class="field-error">Enter a valid phone number (digits, spaces, +, -, () allowed).</span></div>
+          <div class="field" id="contactEmailField"><label>Email</label><input name="email" type="email" value="${escapeHtml(c.email)}" required /><span class="field-error">Enter a valid email address.</span></div>
           <div class="field full"><label>Address</label><input name="address" value="${escapeHtml(c.address)}" required /></div>
           <div class="field full"><label>Google Map link (used to embed map)</label><input name="mapEmbed" value="${escapeHtml(c.mapEmbed)}" /></div>
         </div>
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Contact Info</button>
       </form>
     `;
-    bindSimpleForm(root, 'contactForm', (fd) => {
-      DataStore.update('contact', { phone: fd.get('phone'), email: fd.get('email'), address: fd.get('address'), mapEmbed: fd.get('mapEmbed') });
+    const form = document.getElementById('contactForm');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const phone = fd.get('phone').trim();
+      const email = fd.get('email').trim();
+      const phoneOk = Validators.phone(phone);
+      const emailOk = Validators.email(email);
+      document.getElementById('contactPhoneField').classList.toggle('invalid', !phoneOk);
+      document.getElementById('contactEmailField').classList.toggle('invalid', !emailOk);
+      if (!phoneOk || !emailOk) {
+        Toast.error('Check the highlighted fields', 'Phone and email need to be in a valid format — this keeps the tel: and mailto: links on the live site working.');
+        return;
+      }
+      DataStore.update('contact', { phone, email, address: fd.get('address'), mapEmbed: fd.get('mapEmbed') });
+      Toast.success('Saved', 'Your changes have been saved.');
+      data = DataStore.get();
     });
     bindResetButton('contact', 'Contact Info', renderContact);
   }
 
   /* ============================ SOCIAL ============================ */
+  const SOCIAL_ICON_MAP = {
+    facebook: 'fa-brands fa-facebook', github: 'fa-brands fa-github', linkedin: 'fa-brands fa-linkedin',
+    youtube: 'fa-brands fa-youtube', instagram: 'fa-brands fa-instagram', twitter: 'fa-brands fa-x-twitter'
+  };
   function renderSocial(root) {
     const s = data.social;
-    const platforms = ['facebook', 'github', 'linkedin', 'youtube', 'instagram', 'twitter'];
+    const platforms = Object.keys(SOCIAL_ICON_MAP);
+    const filledCount = platforms.filter(p => s[p] && s[p].trim()).length;
     root.innerHTML = `
-      <div class="admin-panel-head"><div><h2>Social Media</h2><p>Profile links used across the site.</p></div>${resetButtonHtml('Social Media')}</div>
+      <div class="admin-panel-head"><div><h2>Social Media</h2><p>Profile links included in your site's SEO data and your downloadable contact card.</p></div>${resetButtonHtml('Social Media')}</div>
+      <div class="admin-card card" style="border-color:var(--accent)">
+        <p style="color:var(--text-muted);font-size:var(--fs-sm);margin:0 0 var(--sp-4)">
+          <i class="fa-solid fa-circle-info" style="color:var(--accent)"></i>
+          These links feed the <strong>Person structured data</strong> in your page's &lt;head&gt; (how Google shows your profile in search results) and the <strong>GitHub link on the "Save Contact" vCard</strong>.
+          For the social icon buttons visible in the Hero section and footer, edit <strong>Hero Section → Social Links</strong> — or just click below to copy these straight over.
+          Currently <strong>${filledCount} of ${platforms.length}</strong> links here are filled in.
+        </p>
+        <button type="button" class="btn btn-outline btn-sm" id="syncToHeroBtn"><i class="fa-solid fa-arrow-right-arrow-left"></i> Copy Filled Links to Hero Social Links</button>
+      </div>
       <form id="socialForm" class="admin-card card">
         <div class="admin-form-grid">
-          ${platforms.map(p => `<div class="field"><label>${p.charAt(0).toUpperCase() + p.slice(1)}</label><input name="${p}" value="${escapeHtml(s[p] || '')}" placeholder="https://" /></div>`).join('')}
+          ${platforms.map(p => `<div class="field"><label><i class="${SOCIAL_ICON_MAP[p]}" style="width:16px;color:var(--text-muted)"></i> ${p === 'twitter' ? 'Twitter / X' : p.charAt(0).toUpperCase() + p.slice(1)}</label><input name="${p}" type="url" value="${escapeHtml(s[p] || '')}" placeholder="https://" /></div>`).join('')}
         </div>
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Social Links</button>
       </form>
     `;
     bindSimpleForm(root, 'socialForm', (fd) => {
       const updated = {};
-      platforms.forEach(p => updated[p] = fd.get(p));
+      platforms.forEach(p => updated[p] = fd.get(p).trim());
       DataStore.update('social', updated);
+    });
+    document.getElementById('syncToHeroBtn').addEventListener('click', () => {
+      const form = document.getElementById('socialForm');
+      const fd = new FormData(form);
+      const filled = platforms.filter(p => fd.get(p) && fd.get(p).trim());
+      if (!filled.length) {
+        Toast.error('Nothing to copy', 'Fill in at least one link above first.');
+        return;
+      }
+      const existing = structuredClone(data.hero.socialLinks || []);
+      let added = 0, updatedCount = 0;
+      filled.forEach(p => {
+        const url = fd.get(p).trim();
+        const label = p === 'twitter' ? 'Twitter' : p.charAt(0).toUpperCase() + p.slice(1);
+        const match = existing.find(e => e.platform.toLowerCase() === p || e.platform.toLowerCase() === label.toLowerCase());
+        if (match) { match.url = url; match.icon = SOCIAL_ICON_MAP[p]; updatedCount++; }
+        else { existing.push({ platform: label, url, icon: SOCIAL_ICON_MAP[p] }); added++; }
+      });
+      DataStore.update('hero', { ...data.hero, socialLinks: existing });
+      data = DataStore.get();
+      Toast.success('Copied', `Hero Social Links updated — ${added} added, ${updatedCount} updated. Open Hero Section to review.`);
     });
     bindResetButton('social', 'Social Media', renderSocial);
   }
 
   /* ============================ INTEGRATIONS (EmailJS + Google Sheets) ============================ */
+  function integrationStatusBadge(enabled, configured) {
+    let color, label;
+    if (!enabled) { color = 'var(--text-dim)'; label = 'Disabled'; }
+    else if (!configured) { color = 'var(--warning)'; label = 'Enabled — Incomplete'; }
+    else { color = 'var(--success)'; label = 'Enabled & Configured'; }
+    return `<span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:600;color:${color};border:1px solid ${color};padding:2px 10px;border-radius:var(--radius-full);margin-left:var(--sp-3)"><span style="width:6px;height:6px;border-radius:50%;background:${color}"></span>${label}</span>`;
+  }
+
   function renderIntegrations(root) {
     const cfg = data.integrations || { emailjs: {}, googleSheets: {}, whatsapp: {} };
     const ej = cfg.emailjs || {};
@@ -577,7 +644,7 @@
       <div class="admin-panel-head"><div><h2>Integrations</h2><p>Send contact-form submissions to email and/or a Google Sheet, on top of the local Messages inbox.</p></div>${resetButtonHtml('Integrations')}</div>
 
       <form id="emailjsForm" class="admin-card card">
-        <h3><i class="fa-solid fa-envelope"></i> EmailJS — send an email on submit</h3>
+        <h3><i class="fa-solid fa-envelope"></i> EmailJS — send an email on submit ${integrationStatusBadge(ej.enabled, !!(ej.serviceId && ej.templateId && ej.publicKey))}</h3>
         <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">
           Create a free account at <a href="https://www.emailjs.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">emailjs.com</a>,
           add an Email Service and a Template, then paste the three IDs below. The template can use
@@ -599,7 +666,7 @@
       </form>
 
       <form id="sheetsForm" class="admin-card card">
-        <h3><i class="fa-solid fa-table"></i> Google Sheets — log every submission to a sheet</h3>
+        <h3><i class="fa-solid fa-table"></i> Google Sheets — log every submission to a sheet ${integrationStatusBadge(gs.enabled, !!(gs.webAppUrl && gs.webAppUrl.trim()))}</h3>
         <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">
           Browsers can't write to a Google Sheet directly — you need a small <strong>Google Apps Script Web App</strong>
           in front of it. In your Sheet, open <em>Extensions → Apps Script</em>, paste the script below, deploy it as a
@@ -626,21 +693,30 @@
       </form>
 
       <form id="whatsappForm" class="admin-card card">
-        <h3><i class="fa-brands fa-whatsapp" style="color:#25d366"></i> WhatsApp — floating chat button</h3>
+        <h3><i class="fa-brands fa-whatsapp" style="color:#25d366"></i> WhatsApp — floating chat button ${integrationStatusBadge(wa.enabled, !!(wa.number && wa.number.trim()))}</h3>
         <p style="color:var(--text-muted);font-size:var(--fs-sm);margin-bottom:var(--sp-4)">Adds a floating WhatsApp button to every page that opens a chat with a pre-filled message.</p>
         <label class="remember-row" style="margin-bottom:var(--sp-4)">
           <input type="checkbox" name="enabled" ${wa.enabled ? 'checked' : ''} />
           <span>Show WhatsApp button</span>
         </label>
         <div class="admin-form-grid">
-          <div class="field"><label>WhatsApp Number (with country code, digits only)</label><input name="number" value="${escapeHtml(wa.number || '')}" placeholder="8801305144356" /></div>
+          <div class="field" id="waNumberField">
+            <label>WhatsApp Number (with country code, digits only)</label>
+            <input name="number" id="waNumberInput" value="${escapeHtml(wa.number || '')}" placeholder="8801305144356" />
+            <span class="field-error">Digits only, with country code, no spaces or symbols (e.g. 8801305144356).</span>
+          </div>
           <div class="field"><label>Pre-filled Message</label><input name="message" value="${escapeHtml(wa.message || '')}" /></div>
         </div>
-        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save WhatsApp Settings</button>
+        <div class="data-action-row">
+          <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save WhatsApp Settings</button>
+          <button class="btn btn-outline" type="button" id="useContactPhoneBtn"><i class="fa-solid fa-copy"></i> Use Phone from Contact Info</button>
+        </div>
       </form>
     `;
 
-    bindSimpleForm(root, 'emailjsForm', (fd) => {
+    document.getElementById('emailjsForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
       DataStore.update('integrations', {
         ...data.integrations,
         emailjs: {
@@ -650,27 +726,62 @@
           publicKey: fd.get('publicKey').trim()
         }
       });
+      data = DataStore.get();
+      Toast.success('Saved', 'EmailJS settings saved.');
+      renderIntegrations(root);
     });
 
-    bindSimpleForm(root, 'sheetsForm', (fd) => {
+    document.getElementById('sheetsForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const enabled = fd.get('enabled') === 'on';
+      const webAppUrl = fd.get('webAppUrl').trim();
+      if (enabled && webAppUrl && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(webAppUrl)) {
+        Toast.error('That doesn\'t look like an Apps Script URL', 'It should start with https://script.google.com/macros/s/ and end with /exec — double-check the deployment URL.');
+        return;
+      }
       DataStore.update('integrations', {
         ...data.integrations,
-        googleSheets: {
-          enabled: fd.get('enabled') === 'on',
-          webAppUrl: fd.get('webAppUrl').trim()
-        }
+        googleSheets: { enabled, webAppUrl }
       });
+      data = DataStore.get();
+      Toast.success('Saved', 'Google Sheets settings saved.');
+      renderIntegrations(root);
     });
 
-    bindSimpleForm(root, 'whatsappForm', (fd) => {
+    document.getElementById('whatsappForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const enabled = fd.get('enabled') === 'on';
+      // Strip everything but digits — WhatsApp's click-to-chat URL needs a
+      // plain digit string, and this is more forgiving than rejecting a
+      // number just because it was pasted with a "+", spaces, or dashes.
+      const number = fd.get('number').replace(/\D/g, '');
+      const numberField = document.getElementById('waNumberField');
+      if (enabled && !number) {
+        numberField.classList.add('invalid');
+        Toast.error('WhatsApp number required', 'Enter a number (with country code) before enabling the button.');
+        return;
+      }
+      numberField.classList.remove('invalid');
       DataStore.update('integrations', {
         ...data.integrations,
-        whatsapp: {
-          enabled: fd.get('enabled') === 'on',
-          number: fd.get('number').trim(),
-          message: fd.get('message').trim()
-        }
+        whatsapp: { enabled, number, message: fd.get('message').trim() }
       });
+      data = DataStore.get();
+      Toast.success('Saved', 'WhatsApp settings saved.');
+      renderIntegrations(root);
+    });
+
+    document.getElementById('useContactPhoneBtn').addEventListener('click', () => {
+      const digits = (data.contact.phone || '').replace(/\D/g, '');
+      if (!digits) {
+        Toast.error('No phone on file', 'Add a phone number in Contact Info first.');
+        return;
+      }
+      document.getElementById('waNumberInput').value = digits;
+      document.getElementById('waNumberField').classList.remove('invalid');
+      Toast.success('Copied', 'Phone number filled in — review the country code, then save.');
     });
 
     document.getElementById('testEmailBtn').addEventListener('click', async () => {
@@ -910,7 +1021,82 @@
     draw();
   }
 
-  /* ============================ NEWSLETTER SUBSCRIBERS ============================ */
+  /* ============================ BLOG COMMENTS ============================ */
+  function renderComments(root) {
+    root.innerHTML = `
+      <div class="admin-panel-head"><div><h2>Comments</h2><p>Submitted from individual blog posts. New comments wait for approval before they appear publicly.</p></div></div>
+      <h3 style="margin-bottom:var(--sp-3)">Pending Approval</h3>
+      <div id="pendingCommentsList"></div>
+      <h3 style="margin:var(--sp-6) 0 var(--sp-3)">Published Comments</h3>
+      <div id="publishedCommentsList"></div>
+    `;
+
+    function postTitle(postId) {
+      const post = (data.blog || []).find(p => p.id === postId || p.slug === postId);
+      return post ? post.title : '(post deleted)';
+    }
+
+    function draw() {
+      const pending = data.pendingComments || [];
+      document.getElementById('pendingCommentsList').innerHTML = pending.map(c => `
+        <div class="message-item card" data-id="${c.id}">
+          <div style="flex:1">
+            <div class="message-meta">${escapeHtml(c.name)} · on "${escapeHtml(postTitle(c.postId))}" · ${fmtDate(c.submittedAt)}</div>
+            <div class="message-body">${escapeHtml(c.text)}</div>
+          </div>
+          <div class="admin-row-actions">
+            <button class="approve-comment" title="Approve & publish"><i class="fa-solid fa-check"></i></button>
+            <button class="danger reject-comment" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+      `).join('') || `<div class="admin-empty card"><i class="fa-solid fa-comment-slash"></i>No comments waiting for approval.</div>`;
+
+      const published = data.comments || [];
+      document.getElementById('publishedCommentsList').innerHTML = published.map(c => `
+        <div class="message-item card" data-id="${c.id}">
+          <div style="flex:1">
+            <div class="message-meta">${escapeHtml(c.name)} · on "${escapeHtml(postTitle(c.postId))}" · ${fmtDate(c.submittedAt)}</div>
+            <div class="message-body">${escapeHtml(c.text)}</div>
+          </div>
+          <div class="admin-row-actions">
+            <button class="danger delete-comment" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('') || `<div class="admin-empty card"><i class="fa-solid fa-comments"></i>No published comments yet.</div>`;
+
+      document.querySelectorAll('.approve-comment').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.closest('[data-id]').dataset.id;
+        const item = (data.pendingComments || []).find(c => c.id === id);
+        if (!item) return;
+        DataStore.addItem('comments', { postId: item.postId, name: item.name, text: item.text, submittedAt: item.submittedAt });
+        DataStore.deleteItem('pendingComments', id);
+        data = DataStore.get();
+        Toast.success('Approved', 'Comment published to the post.');
+        draw();
+        updateMsgBadge();
+      }));
+      document.querySelectorAll('.reject-comment').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.closest('[data-id]').dataset.id;
+        confirmAction('Reject and discard this comment?', () => {
+          DataStore.deleteItem('pendingComments', id);
+          data = DataStore.get();
+          Toast.success('Rejected', 'Comment discarded.');
+          draw();
+          updateMsgBadge();
+        });
+      }));
+      document.querySelectorAll('.delete-comment').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.closest('[data-id]').dataset.id;
+        confirmAction('Delete this comment from the live site?', () => {
+          DataStore.deleteItem('comments', id);
+          data = DataStore.get();
+          Toast.success('Deleted', 'Comment removed.');
+          draw();
+        });
+      }));
+    }
+    draw();
+  }
   function renderNewsletter(root) {
     const subs = data.newsletterSubscribers || [];
     root.innerHTML = `
@@ -1072,7 +1258,7 @@
   }
 
   function renderDataManagement(root) {
-    const counts = ['projects', 'skills', 'experience', 'education', 'certificates', 'gallery', 'services', 'clients', 'testimonials', 'pendingTestimonials', 'blog', 'faqs', 'messages', 'newsletterSubscribers'];
+    const counts = ['projects', 'skills', 'experience', 'education', 'certificates', 'gallery', 'services', 'clients', 'testimonials', 'pendingTestimonials', 'blog', 'comments', 'pendingComments', 'faqs', 'messages', 'newsletterSubscribers'];
     root.innerHTML = `
       <div class="admin-panel-head"><div><h2>Data Management</h2><p>Back up, restore, or reset everything stored in this browser.</p></div></div>
 
@@ -1282,6 +1468,7 @@
           popularPages: (data.analytics?.popularPages || []).map(p => ({ page: p.page, views: 0 }))
         };
         publishData.pendingTestimonials = [];
+        publishData.pendingComments = [];
 
         const newBlock = `${markerStart}\nconst DEFAULT_DATA = ${JSON.stringify(publishData, null, 2)};\n${markerEnd}`;
         const newSource = sourceText.slice(0, startIdx) + newBlock + sourceText.slice(endIdx + markerEnd.length);

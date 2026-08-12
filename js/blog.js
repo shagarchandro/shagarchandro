@@ -212,6 +212,10 @@
       .slice(0, 3)
       .map(x => x.post);
 
+    const postComments = (data.comments || [])
+      .filter(c => c.postId === post.id)
+      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
     // BlogPosting JSON-LD so search engines can show rich results for the
     // post (byline, dates, image) — mirrors the FAQPage schema main.js
     // injects on the homepage.
@@ -264,6 +268,36 @@
           </div>
         </div>
       ` : ''}
+      <div class="blog-comments">
+        <h2>Comments <span class="blog-comments-count">(${postComments.length})</span></h2>
+        <div class="blog-comments-list">
+          ${postComments.length ? postComments.map(c => `
+            <div class="blog-comment">
+              <div class="blog-comment-avatar">${escapeHtml((c.name || '?').trim().charAt(0).toUpperCase())}</div>
+              <div class="blog-comment-body">
+                <div class="blog-comment-meta"><strong>${escapeHtml(c.name)}</strong><span>${escapeHtml(formatDate(c.submittedAt))}</span></div>
+                <p>${escapeHtml(c.text)}</p>
+              </div>
+            </div>
+          `).join('') : `<p class="blog-comments-empty">No comments yet — be the first to share your thoughts.</p>`}
+        </div>
+        <form id="commentForm" class="blog-comment-form">
+          <div class="field-hp" aria-hidden="true">
+            <label for="comment-website">Website</label>
+            <input type="text" id="comment-website" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="comment-name">Name</label>
+            <input type="text" id="comment-name" required maxlength="60" />
+          </div>
+          <div class="field">
+            <label for="comment-text">Comment</label>
+            <textarea id="comment-text" required maxlength="1000" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-paper-plane"></i> Post Comment</button>
+          <p class="blog-comment-note">Comments are reviewed before they appear publicly.</p>
+        </form>
+      </div>
       <div style="text-align:center;margin-top:var(--sp-6)">
         <a href="blog.html" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Blog</a>
       </div>
@@ -280,6 +314,29 @@
       const original = btn.innerHTML;
       btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
       setTimeout(() => { btn.innerHTML = original; }, 1800);
+    });
+
+    document.getElementById('commentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Honeypot: same silent-drop pattern used on the site's other public
+      // forms (contact, newsletter, testimonial submission).
+      const hp = document.getElementById('comment-website');
+      if (hp && hp.value) return;
+
+      const name = document.getElementById('comment-name').value.trim();
+      const text = document.getElementById('comment-text').value.trim();
+      if (!name || !text) return;
+
+      DataStore.addItem('pendingComments', {
+        postId: post.id,
+        name,
+        text,
+        submittedAt: new Date().toISOString()
+      });
+
+      const form = document.getElementById('commentForm');
+      form.innerHTML = `<p class="blog-comment-note" style="font-size:var(--fs-sm)"><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Thanks — your comment is awaiting approval and will appear here once reviewed.</p>`;
     });
   }
 

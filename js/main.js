@@ -114,6 +114,26 @@
     if (s.fontFamily) {
       rootStyle.setProperty('--font-body', s.fontFamily);
     }
+
+    // The Person structured-data block in <head> ships with placeholder
+    // name/title/social links baked in at build time. Refresh it from the
+    // actual admin-edited Profile and Social Media data so search engines
+    // see current info instead of whatever the last static HTML edit was —
+    // otherwise this goes stale the moment someone changes their name or
+    // social links without knowing this block even exists.
+    const personSchemaEl = document.getElementById('personSchema');
+    if (personSchemaEl) {
+      const sameAs = Object.values(data.social || {}).filter(url => url && url.trim());
+      const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: data.profile.name,
+        jobTitle: data.profile.title,
+        url: 'https://shagarchandro.github.io/shagarchandro-Portfolio/',
+        sameAs
+      };
+      personSchemaEl.textContent = JSON.stringify(schema);
+    }
   }
 
   /* ============================ SECTION VISIBILITY ============================
@@ -597,6 +617,39 @@
     const mapLink = document.getElementById('contactMapLink');
     if (mapLink) {
       mapLink.href = resolvedMapUrl;
+    }
+
+    // vCard download ("Save Contact") — builds a standard .vcf on the fly
+    // from the same profile/contact fields already shown on the page, so
+    // a visitor can add this person to their phone contacts in one tap
+    // instead of retyping everything by hand.
+    const saveContactBtn = document.getElementById('saveContactBtn');
+    if (saveContactBtn) {
+      saveContactBtn.addEventListener('click', () => {
+        const name = data.profile.name || 'Contact';
+        const title = data.profile.title || data.hero.subtitle || '';
+        const vcard = [
+          'BEGIN:VCARD',
+          'VERSION:3.0',
+          `FN:${name}`,
+          title ? `TITLE:${title}` : '',
+          data.contact.phone ? `TEL;TYPE=CELL:${data.contact.phone}` : '',
+          data.contact.email ? `EMAIL:${data.contact.email}` : '',
+          data.contact.address ? `ADR:;;${data.contact.address.replace(/,/g, ';')}` : '',
+          data.social?.github ? `URL:${data.social.github}` : '',
+          'END:VCARD'
+        ].filter(Boolean).join('\r\n');
+
+        const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${name.replace(/\s+/g, '-')}.vcf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
     }
 
     const form = document.getElementById('contactForm');
@@ -1110,6 +1163,7 @@
       { label: 'Go to Contact', icon: 'fa-solid fa-envelope', cat: 'Navigate', action: () => scrollToId('contact') },
       { label: 'Toggle Dark / Light Mode', icon: 'fa-solid fa-circle-half-stroke', cat: 'Action', action: () => document.getElementById('themeToggle').click() },
       { label: 'Download Resume (PDF)', icon: 'fa-solid fa-download', cat: 'Action', action: () => { window.location.href = data.profile.resumeUrl; } },
+      { label: 'Save Contact (vCard)', icon: 'fa-solid fa-address-card', cat: 'Action', action: () => document.getElementById('saveContactBtn')?.click() },
       { label: 'Open Printable Resume', icon: 'fa-solid fa-file-lines', cat: 'Action', action: () => window.open('resume.html', '_blank') },
       ...data.projects.map(p => ({ label: p.title, icon: 'fa-solid fa-diagram-project', cat: 'Project', action: () => { scrollToId('projects'); setTimeout(() => openProjectModal(p.id), 500); } })),
       ...(data.blog || []).map(post => ({ label: post.title, icon: 'fa-solid fa-pen-nib', cat: 'Blog', action: () => { window.location.href = `blog.html?post=${encodeURIComponent(post.slug || post.id)}`; } }))
