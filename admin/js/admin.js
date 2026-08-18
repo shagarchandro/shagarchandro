@@ -547,6 +547,30 @@
         </div>
         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Contact Info</button>
       </form>
+
+      <div class="admin-card card">
+        <h3><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Availability Status</h3>
+        <p style="color:var(--text-muted);font-size:var(--fs-sm)">Shown as a badge next to "Let's Work Together" — a quick signal for whether you're currently open to new work.</p>
+        <form id="availabilityForm" class="admin-form-grid" style="margin-top:var(--sp-4)">
+          <div class="field full">
+            <label class="remember-row" style="margin:0">
+              <input type="checkbox" name="availabilityEnabled" ${c.availabilityEnabled ? 'checked' : ''} />
+              <span>Show the availability badge</span>
+            </label>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select name="availabilityStatus">
+              <option value="available" ${c.availabilityStatus === 'available' ? 'selected' : ''}>Available (green)</option>
+              <option value="limited" ${c.availabilityStatus === 'limited' ? 'selected' : ''}>Limited availability (amber)</option>
+              <option value="unavailable" ${c.availabilityStatus === 'unavailable' ? 'selected' : ''}>Not available (red)</option>
+            </select>
+          </div>
+          <div class="field"><label>Badge Text</label><input name="availabilityText" value="${escapeHtml(c.availabilityText || '')}" placeholder="Available for freelance work" /></div>
+          <div class="field full"><label>Response Time (shown under the contact form)</label><input name="responseTime" value="${escapeHtml(c.responseTime || '')}" placeholder="Typically replies within 24 hours" /></div>
+          <div class="field full"><button class="btn btn-outline" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Availability</button></div>
+        </form>
+      </div>
     `;
     const form = document.getElementById('contactForm');
     form.addEventListener('submit', (e) => {
@@ -562,10 +586,25 @@
         Toast.error('Check the highlighted fields', 'Phone and email need to be in a valid format — this keeps the tel: and mailto: links on the live site working.');
         return;
       }
-      DataStore.update('contact', { phone, email, address: fd.get('address'), mapEmbed: fd.get('mapEmbed') });
-      Toast.success('Saved', 'Your changes have been saved.');
+      DataStore.update('contact', { ...data.contact, phone, email, address: fd.get('address'), mapEmbed: fd.get('mapEmbed') });
       data = DataStore.get();
+      Toast.success('Saved', 'Your changes have been saved.');
     });
+
+    document.getElementById('availabilityForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      DataStore.update('contact', {
+        ...data.contact,
+        availabilityEnabled: fd.get('availabilityEnabled') === 'on',
+        availabilityStatus: fd.get('availabilityStatus'),
+        availabilityText: fd.get('availabilityText').trim(),
+        responseTime: fd.get('responseTime').trim()
+      });
+      data = DataStore.get();
+      Toast.success('Saved', 'Availability settings saved.');
+    });
+
     bindResetButton('contact', 'Contact Info', renderContact);
   }
 
@@ -1761,12 +1800,14 @@
     fields: [
       { key: 'name', label: 'Skill Name', type: 'text', required: true },
       { key: 'percentage', label: 'Percentage (0-100)', type: 'number', min: 0, max: 100, required: true },
-      { key: 'icon', label: 'Icon class (Font Awesome, e.g. fa-brands fa-react)', type: 'text', required: true }
+      { key: 'icon', label: 'Icon class (Font Awesome, e.g. fa-brands fa-react)', type: 'text', required: true },
+      { key: 'category', label: 'Category (optional — shown as a filter chip)', type: 'text', placeholder: 'e.g. Frontend, Backend, Tools' }
     ],
     columns: [
       { key: 'icon', label: '', render: v => `<i class="${escapeHtml(v)}" style="color:var(--accent)"></i>` },
       { key: 'name', label: 'Name' },
-      { key: 'percentage', label: 'Level', render: v => `${v}%` }
+      { key: 'percentage', label: 'Level', render: v => `${v}%` },
+      { key: 'category', label: 'Category' }
     ]
   };
 
@@ -1828,9 +1869,10 @@
     label: 'Image', labelPlural: 'Gallery', reorderable: true,
     fields: [
       { key: 'image', label: 'Image', type: 'image', required: true },
-      { key: 'caption', label: 'Caption', type: 'text', required: true }
+      { key: 'caption', label: 'Caption', type: 'text', required: true },
+      { key: 'category', label: 'Category (optional — shown as a filter chip)', type: 'text', placeholder: 'e.g. Events, Life, Workspace' }
     ],
-    columns: [{ key: 'image', label: '', type: 'image' }, { key: 'caption', label: 'Caption' }]
+    columns: [{ key: 'image', label: '', type: 'image' }, { key: 'caption', label: 'Caption' }, { key: 'category', label: 'Category' }]
   };
 
   const servicesConfig = {
@@ -1901,10 +1943,17 @@
 
   function renderCrud(sectionKey, config) {
     const root = document.getElementById('adminContent');
+    const isGallery = sectionKey === 'gallery';
     root.innerHTML = `
       <div class="admin-panel-head">
         <div><h2>${config.labelPlural}</h2><p>${data[sectionKey].length} item(s)${config.reorderable ? ' · drag the ⠿ handle to reorder' : ''}</p></div>
-        <button class="btn btn-primary" id="addItemBtn"><i class="fa-solid fa-plus"></i> Add ${config.label}</button>
+        <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
+          ${isGallery ? `
+            <button class="btn btn-outline" id="bulkUploadBtn"><i class="fa-solid fa-images"></i> Add Your Own Photos</button>
+            <input type="file" accept="image/*" multiple id="bulkUploadInput" hidden />
+          ` : ''}
+          <button class="btn btn-primary" id="addItemBtn"><i class="fa-solid fa-plus"></i> Add ${config.label}</button>
+        </div>
       </div>
       <div class="admin-toolbar">
         <div class="admin-search-box">
@@ -2039,6 +2088,50 @@
 
     draw();
     document.getElementById('addItemBtn').addEventListener('click', () => openCrudModal(sectionKey, config, null, draw));
+
+    if (isGallery) {
+      const bulkInput = document.getElementById('bulkUploadInput');
+      document.getElementById('bulkUploadBtn').addEventListener('click', () => bulkInput.click());
+      bulkInput.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        const btn = document.getElementById('bulkUploadBtn');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        let added = 0;
+        try {
+          for (let i = 0; i < files.length; i++) {
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading ${i + 1} of ${files.length}...`;
+            const file = files[i];
+            const b64 = await fileToBase64(file);
+            // A friendly default caption from the filename ("my-trip-2026.jpg"
+            // → "My Trip 2026") — quicker than typing one for every photo,
+            // and still editable afterwards from the table.
+            const caption = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Photo';
+            DataStore.addItem('gallery', { image: b64, caption, category: '' });
+            added++;
+          }
+          Toast.success('Added', `${added} photo${added === 1 ? '' : 's'} added to the gallery.`);
+        } catch (err) {
+          // Everything here lives in localStorage (no server), which most
+          // browsers cap around 5-10MB total — large or many photos as
+          // base64 can realistically hit that. Whatever uploaded before
+          // the limit hit is kept; the rest just didn't make it in.
+          Toast.error(
+            'Ran out of local storage space',
+            added > 0
+              ? `Added ${added} of ${files.length} before running out of room. Use Admin → Data Management to check usage, or try smaller images / fewer at once.`
+              : "Couldn't add any — try smaller images, fewer at once, or check storage usage in Data Management."
+          );
+        } finally {
+          data = DataStore.get();
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+          bulkInput.value = '';
+          draw();
+        }
+      });
+    }
 
     document.getElementById('crudSearchInput').addEventListener('input', (e) => {
       query = e.target.value.trim();

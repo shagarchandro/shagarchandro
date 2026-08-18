@@ -6,7 +6,7 @@
    edited in /admin is picked up quickly while still working offline.
    ========================================================================== */
 
-const CACHE_VERSION = 'v14';
+const CACHE_VERSION = 'v24';
 const CACHE_NAME = `portfolio-shell-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -35,7 +35,7 @@ const APP_SHELL = [
   './js/blog.js',
   './js/resume.js',
   './admin/js/admin.js',
-  './assets/images/profile/profile.svg',
+  './assets/images/profile/profile.png',
   './assets/images/profile/favicon.svg',
   './assets/images/profile/favicon-32.png',
   './assets/images/profile/apple-touch-icon.png',

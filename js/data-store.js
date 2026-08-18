@@ -50,7 +50,7 @@ const DEFAULT_DATA = {
     name: 'Shagar Chandro',
     title: 'Frontend Developer',
     bio: 'I build fast, accessible, and thoughtfully designed interfaces — from pixel-perfect landing pages to full React applications.',
-    photo: 'assets/images/profile/profile.svg',
+    photo: 'assets/images/profile/profile.png',
     resumeUrl: 'assets/Resume-of-Shagar-Chandro.pdf',
     githubUsername: 'shagarchandro'
   },
@@ -82,23 +82,23 @@ const DEFAULT_DATA = {
   },
 
   skills: [
-    { id: 'sk1', name: 'HTML5', percentage: 95, icon: 'fa-brands fa-html5' },
-    { id: 'sk2', name: 'CSS3', percentage: 92, icon: 'fa-brands fa-css3-alt' },
-    { id: 'sk3', name: 'JavaScript', percentage: 88, icon: 'fa-brands fa-js' },
-    { id: 'sk4', name: 'React', percentage: 80, icon: 'fa-brands fa-react' },
-    { id: 'sk5', name: 'Git & GitHub', percentage: 85, icon: 'fa-brands fa-git-alt' },
-    { id: 'sk6', name: 'Responsive Design', percentage: 90, icon: 'fa-solid fa-mobile-screen' },
-    { id: 'sk7', name: 'Tailwind CSS', percentage: 78, icon: 'fa-brands fa-css3' },
-    { id: 'sk8', name: 'Node.js (Basics)', percentage: 60, icon: 'fa-brands fa-node' }
+    { id: 'sk1', name: 'HTML5', percentage: 95, icon: 'fa-brands fa-html5', category: 'Frontend' },
+    { id: 'sk2', name: 'CSS3', percentage: 92, icon: 'fa-brands fa-css3-alt', category: 'Frontend' },
+    { id: 'sk3', name: 'JavaScript', percentage: 88, icon: 'fa-brands fa-js', category: 'Frontend' },
+    { id: 'sk4', name: 'React', percentage: 80, icon: 'fa-brands fa-react', category: 'Frontend' },
+    { id: 'sk5', name: 'Git & GitHub', percentage: 85, icon: 'fa-brands fa-git-alt', category: 'Tools' },
+    { id: 'sk6', name: 'Responsive Design', percentage: 90, icon: 'fa-solid fa-mobile-screen', category: 'Frontend' },
+    { id: 'sk7', name: 'Tailwind CSS', percentage: 78, icon: 'fa-brands fa-css3', category: 'Frontend' },
+    { id: 'sk8', name: 'Node.js (Basics)', percentage: 60, icon: 'fa-brands fa-node', category: 'Backend' }
   ],
 
   projects: [
-    { id: 'pr1', title: 'Aam Bazar', description: 'A fruit e-commerce concept site with product listing, cart UI and a clean checkout flow.', image: 'assets/images/projects/aambazar.svg', liveLink: 'https://shagarchandro.github.io/aambazar.com/', githubLink: 'https://github.com/shagarchandro/aambazar.com', category: 'E-commerce', challenge: 'Local fruit sellers had no simple way to showcase products online or take orders without relying on third-party marketplace apps.', solution: 'Built a lightweight storefront with category browsing, a persistent cart and a streamlined checkout — all running on the client with no backend dependency.', techStack: 'HTML, CSS, JavaScript, LocalStorage' },
-    { id: 'pr2', title: 'Amer Hat Bazar', description: 'A responsive local marketplace landing experience built with vanilla HTML, CSS and JavaScript.', image: 'assets/images/projects/amerhatbazar.svg', liveLink: 'https://shagarchandro.github.io/amerhatbazar.com/', githubLink: 'https://github.com/shagarchandro/amerhatbazar.com', category: 'E-commerce', challenge: 'Needed a marketplace-style landing page that felt trustworthy and fast on low-end mobile devices common in the target market.', solution: 'Focused on a lean CSS footprint, compressed imagery and a mobile-first layout to keep load times low on 3G connections.', techStack: 'HTML, CSS, JavaScript' },
-    { id: 'pr3', title: 'Personal Home Page', description: 'An animated personal landing page exploring layout, motion and typography experiments.', image: 'assets/images/projects/homepage.svg', liveLink: 'https://shagarchandro.github.io/home-page/', githubLink: 'https://github.com/shagarchandro/home-page', category: 'Landing Page', challenge: 'Wanted a sandbox to practice advanced CSS animation and typography without the constraints of a client brief.', solution: 'Used the page as a personal design lab — scroll-linked motion, variable fonts and layered typography experiments.', techStack: 'HTML, CSS, JavaScript' },
-    { id: 'pr4', title: 'TextUtils (React)', description: 'A text-utility React app that trims, converts case and analyzes word/character counts in real time.', image: 'assets/images/projects/textutils.svg', liveLink: 'https://shagarchandro.github.io/textutils-React-js/', githubLink: 'https://github.com/shagarchandro/textutils-React-js', category: 'React App', challenge: 'Needed a first real React project to learn component state, props and controlled inputs beyond tutorials.', solution: 'Built a small but complete utility app — case conversion, whitespace trimming, live word/character counts — all driven by React state.', techStack: 'React, JavaScript, CSS' },
-    { id: 'pr5', title: 'School ERP UI', description: 'An admin-style dashboard interface concept for managing students, classes and results.', image: 'assets/images/projects/schoolerp.svg', liveLink: '#', githubLink: '#', category: 'Dashboard', challenge: 'Small schools often manage records with paper or spreadsheets — a big usability gap for non-technical staff.', solution: 'Designed a clean, form-heavy admin UI concept covering student records, class assignment and result entry.', techStack: 'HTML, CSS, JavaScript' },
-    { id: 'pr6', title: 'Portfolio Website', description: 'This very portfolio — fully responsive, dark/light aware, and backed by a custom admin panel.', image: 'assets/images/projects/portfolio.svg', liveLink: '#', githubLink: 'https://github.com/shagarchandro/shagarchandro-Portfolio', category: 'Portfolio', challenge: 'Needed a portfolio that could be updated without touching code, and that felt distinctive rather than templated.', solution: 'Built a shared localStorage data layer powering both the public site and a full custom admin panel, styled around a code-editor visual identity.', techStack: 'HTML, CSS, JavaScript, LocalStorage' }
+    { id: 'pr1', title: 'Aam Bazar', description: 'A fruit e-commerce concept site with product listing, cart UI and a clean checkout flow.', image: 'assets/images/projects/aambazar.png', liveLink: 'https://shagarchandro.github.io/aambazar.com/', githubLink: 'https://github.com/shagarchandro/aambazar.com', category: 'E-commerce', challenge: 'Local fruit sellers had no simple way to showcase products online or take orders without relying on third-party marketplace apps.', solution: 'Built a lightweight storefront with category browsing, a persistent cart and a streamlined checkout — all running on the client with no backend dependency.', techStack: 'HTML, CSS, JavaScript, LocalStorage' },
+    { id: 'pr2', title: 'Amer Hat Bazar', description: 'A responsive local marketplace landing experience built with vanilla HTML, CSS and JavaScript.', image: 'assets/images/projects/amerhatbazar.png', liveLink: 'https://shagarchandro.github.io/amerhatbazar.com/', githubLink: 'https://github.com/shagarchandro/amerhatbazar.com', category: 'E-commerce', challenge: 'Needed a marketplace-style landing page that felt trustworthy and fast on low-end mobile devices common in the target market.', solution: 'Focused on a lean CSS footprint, compressed imagery and a mobile-first layout to keep load times low on 3G connections.', techStack: 'HTML, CSS, JavaScript' },
+    { id: 'pr3', title: 'Personal Home Page', description: 'An animated personal landing page exploring layout, motion and typography experiments.', image: 'assets/images/projects/homepage.png', liveLink: 'https://shagarchandro.github.io/home-page/', githubLink: 'https://github.com/shagarchandro/home-page', category: 'Landing Page', challenge: 'Wanted a sandbox to practice advanced CSS animation and typography without the constraints of a client brief.', solution: 'Used the page as a personal design lab — scroll-linked motion, variable fonts and layered typography experiments.', techStack: 'HTML, CSS, JavaScript' },
+    { id: 'pr4', title: 'TextUtils (React)', description: 'A text-utility React app that trims, converts case and analyzes word/character counts in real time.', image: 'assets/images/projects/textutils.png', liveLink: 'https://shagarchandro.github.io/textutils-React-js/', githubLink: 'https://github.com/shagarchandro/textutils-React-js', category: 'React App', challenge: 'Needed a first real React project to learn component state, props and controlled inputs beyond tutorials.', solution: 'Built a small but complete utility app — case conversion, whitespace trimming, live word/character counts — all driven by React state.', techStack: 'React, JavaScript, CSS' },
+    { id: 'pr5', title: 'School ERP UI', description: 'An admin-style dashboard interface concept for managing students, classes and results.', image: 'assets/images/projects/schoolerp.png', liveLink: '#', githubLink: '#', category: 'Dashboard', challenge: 'Small schools often manage records with paper or spreadsheets — a big usability gap for non-technical staff.', solution: 'Designed a clean, form-heavy admin UI concept covering student records, class assignment and result entry.', techStack: 'HTML, CSS, JavaScript' },
+    { id: 'pr6', title: 'Portfolio Website', description: 'This very portfolio — fully responsive, dark/light aware, and backed by a custom admin panel.', image: 'assets/images/projects/portfolio.png', liveLink: '#', githubLink: 'https://github.com/shagarchandro/shagarchandro-Portfolio', category: 'Portfolio', challenge: 'Needed a portfolio that could be updated without touching code, and that felt distinctive rather than templated.', solution: 'Built a shared localStorage data layer powering both the public site and a full custom admin panel, styled around a code-editor visual identity.', techStack: 'HTML, CSS, JavaScript, LocalStorage' }
   ],
 
   experience: [
@@ -112,16 +112,16 @@ const DEFAULT_DATA = {
   ],
 
   certificates: [
-    { id: 'ce1', title: 'Responsive Web Design', issuer: 'freeCodeCamp', date: '2023', image: 'assets/images/certificates/cert1.svg', link: '#' },
-    { id: 'ce2', title: 'JavaScript Algorithms & Data Structures', issuer: 'freeCodeCamp', date: '2023', image: 'assets/images/certificates/cert2.svg', link: '#' },
-    { id: 'ce3', title: 'React – The Complete Guide', issuer: 'Udemy', date: '2024', image: 'assets/images/certificates/cert3.svg', link: '#' }
+    { id: 'ce1', title: 'Responsive Web Design', issuer: 'freeCodeCamp', date: '2023', image: 'assets/images/certificates/cert1.png', link: '#' },
+    { id: 'ce2', title: 'JavaScript Algorithms & Data Structures', issuer: 'freeCodeCamp', date: '2023', image: 'assets/images/certificates/cert2.png', link: '#' },
+    { id: 'ce3', title: 'React – The Complete Guide', issuer: 'Udemy', date: '2024', image: 'assets/images/certificates/cert3.png', link: '#' }
   ],
 
   gallery: [
-    { id: 'ga1', image: 'assets/images/gallery/gallery1.svg', caption: 'Workspace' },
-    { id: 'ga2', image: 'assets/images/gallery/gallery2.svg', caption: 'Hackathon' },
-    { id: 'ga3', image: 'assets/images/gallery/gallery3.svg', caption: 'Team meetup' },
-    { id: 'ga4', image: 'assets/images/gallery/gallery4.svg', caption: 'Conference' }
+    { id: 'ga1', image: 'assets/images/gallery/gallery1.png', caption: 'Workspace', category: 'Life' },
+    { id: 'ga2', image: 'assets/images/gallery/gallery2.png', caption: 'Hackathon', category: 'Events' },
+    { id: 'ga3', image: 'assets/images/gallery/gallery3.png', caption: 'Team meetup', category: 'Events' },
+    { id: 'ga4', image: 'assets/images/gallery/gallery4.png', caption: 'Conference', category: 'Events' }
   ],
 
   services: [
@@ -132,16 +132,16 @@ const DEFAULT_DATA = {
   ],
 
   clients: [
-    { id: 'cl1', name: 'Aam Bazar', logo: 'assets/images/clients/client1.svg', url: 'https://shagarchandro.github.io/aambazar.com/' },
-    { id: 'cl2', name: 'Amer Hat Bazar', logo: 'assets/images/clients/client2.svg', url: 'https://shagarchandro.github.io/amerhatbazar.com/' },
-    { id: 'cl3', name: 'TextUtils', logo: 'assets/images/clients/client3.svg', url: '' },
-    { id: 'cl4', name: 'School ERP', logo: 'assets/images/clients/client4.svg', url: '' }
+    { id: 'cl1', name: 'Aam Bazar', logo: 'assets/images/clients/client1.png', url: 'https://shagarchandro.github.io/aambazar.com/' },
+    { id: 'cl2', name: 'Amer Hat Bazar', logo: 'assets/images/clients/client2.png', url: 'https://shagarchandro.github.io/amerhatbazar.com/' },
+    { id: 'cl3', name: 'TextUtils', logo: 'assets/images/clients/client3.png', url: '' },
+    { id: 'cl4', name: 'School ERP', logo: 'assets/images/clients/client4.png', url: '' }
   ],
 
   testimonials: [
-    { id: 'te1', name: 'Rafiul Islam', role: 'Startup Founder', photo: 'assets/images/testimonials/t1.svg', text: 'Shagar delivered our landing page ahead of schedule with great attention to detail.', rating: 5 },
-    { id: 'te2', name: 'Nusrat Jahan', role: 'Product Manager', photo: 'assets/images/testimonials/t2.svg', text: 'Communicative, reliable, and genuinely cares about getting the UI right.', rating: 5 },
-    { id: 'te3', name: 'Imran Kabir', role: 'Small Business Owner', photo: 'assets/images/testimonials/t3.svg', text: 'Our site finally feels modern and works great on mobile. Highly recommend.', rating: 4 }
+    { id: 'te1', name: 'Rafiul Islam', role: 'Startup Founder', photo: 'assets/images/testimonials/t1.png', text: 'Shagar delivered our landing page ahead of schedule with great attention to detail.', rating: 5 },
+    { id: 'te2', name: 'Nusrat Jahan', role: 'Product Manager', photo: 'assets/images/testimonials/t2.png', text: 'Communicative, reliable, and genuinely cares about getting the UI right.', rating: 5 },
+    { id: 'te3', name: 'Imran Kabir', role: 'Small Business Owner', photo: 'assets/images/testimonials/t3.png', text: 'Our site finally feels modern and works great on mobile. Highly recommend.', rating: 4 }
   ],
 
   // Visitor-submitted testimonials land here first ("Share Your Experience"
@@ -161,19 +161,19 @@ const DEFAULT_DATA = {
     {
       id: 'bl1', slug: 'building-this-portfolio', title: 'How I Built This Portfolio (and Its Admin Panel)',
       excerpt: 'A behind-the-scenes look at building a fully static, backend-free portfolio with its own custom CMS.',
-      cover: 'assets/images/projects/portfolio.svg', date: '2026-06-01', tags: 'JavaScript, Architecture',
+      cover: 'assets/images/projects/portfolio.png', date: '2026-06-01', tags: 'JavaScript, Architecture',
       content: "Most portfolio sites hardcode their content directly into the HTML, which means every small update means editing code. I wanted something different: a single site where all the content — projects, skills, testimonials, everything — lives in one data layer that both the public page and a private admin panel read from.\n\nThe result is a shared `DataStore` module backed by `localStorage`. The public site renders every section from it on load; the admin panel reads and writes the exact same structure. No backend, no database, no build step — just HTML, CSS and JavaScript.\n\nThe trade-off is that data lives per-browser rather than syncing across devices, so the admin panel includes a JSON export/import tool to back up and restore content reliably."
     },
     {
       id: 'bl2', slug: 'why-vanilla-js', title: 'Why I Still Reach for Vanilla JavaScript',
       excerpt: 'Frameworks are great, but plain JavaScript still wins for small, fast, dependency-free sites.',
-      cover: 'assets/images/projects/homepage.svg', date: '2026-05-12', tags: 'JavaScript, Opinion',
+      cover: 'assets/images/projects/homepage.png', date: '2026-05-12', tags: 'JavaScript, Opinion',
       content: "It's easy to reach for a framework by default, but for a lot of small projects — landing pages, portfolios, tools — plain JavaScript is genuinely the better choice. No build step, no dependency updates, no bundle size to worry about.\n\nThe key is discipline: keep render functions small and predictable, use a single source of truth for state, and lean on the platform (IntersectionObserver, the Fetch API, native form validation) instead of reinventing it.\n\nFrameworks earn their keep on large, stateful applications. For a fast, focused site, vanilla JS keeps things simple and easy to reason about."
     },
     {
       id: 'bl3', slug: 'responsive-design-checklist', title: 'My Responsive Design Checklist',
       excerpt: 'A quick checklist I run through on every project before calling it "done".',
-      cover: 'assets/images/projects/schoolerp.svg', date: '2026-04-20', tags: 'CSS, Workflow',
+      cover: 'assets/images/projects/schoolerp.png', date: '2026-04-20', tags: 'CSS, Workflow',
       content: "Before I consider any layout finished, I run through the same short checklist: test at 375px, 768px, 1024px and 1440px; check that tap targets are at least 44px; make sure text never overflows its container; verify images have explicit dimensions to avoid layout shift; and confirm keyboard focus order makes sense.\n\nIt sounds basic, but consistently doing it catches the majority of responsive bugs before a client ever sees them."
     }
   ],
@@ -189,7 +189,11 @@ const DEFAULT_DATA = {
     phone: '+8801305144356',
     email: 'mbs200361@gmail.com',
     address: 'Gaibandha, Dhaka, Bangladesh',
-    mapEmbed: 'https://maps.google.com/?q=Gaibandha,+Dhaka,+Bangladesh'
+    mapEmbed: 'https://maps.google.com/?q=Gaibandha,+Dhaka,+Bangladesh',
+    availabilityEnabled: true,
+    availabilityStatus: 'available',
+    availabilityText: 'Available for freelance work',
+    responseTime: 'Typically replies within 24 hours'
   },
 
   social: {

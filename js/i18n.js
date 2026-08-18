@@ -35,6 +35,11 @@ const TRANSLATIONS = {
   'about.email': { en: 'EMAIL', bn: 'ইমেইল' },
   'about.location': { en: 'LOCATION', bn: 'অবস্থান' },
   'about.getInTouch': { en: 'Get In Touch', bn: 'যোগাযোগ করুন' },
+  'about.downloadResume': { en: 'Download Resume', bn: 'রিজিউমি ডাউনলোড করুন' },
+  'skills.levelExpert': { en: 'Expert', bn: 'দক্ষ' },
+  'skills.levelAdvanced': { en: 'Advanced', bn: 'উন্নত' },
+  'skills.levelIntermediate': { en: 'Intermediate', bn: 'মধ্যম' },
+  'skills.levelBeginner': { en: 'Beginner', bn: 'প্রাথমিক' },
 
   'skills.eyebrow': { en: 'Skills', bn: 'দক্ষতা' },
   'skills.titleHtml': { en: 'My <span class="accent-text">Tech Stack</span>', bn: 'আমার <span class="accent-text">টেক স্ট্যাক</span>' },
@@ -129,7 +134,33 @@ const TRANSLATIONS = {
   'testimonialForm.textLabel': { en: 'Your Testimonial', bn: 'আপনার মতামত' },
   'testimonialForm.note': { en: 'Submitted testimonials are reviewed before they appear on the site.', bn: 'জমা দেওয়া মতামত পর্যালোচনার পর সাইটে প্রকাশিত হবে।' },
   'testimonialForm.cancel': { en: 'Cancel', bn: 'বাতিল' },
-  'testimonialForm.submit': { en: 'Submit', bn: 'জমা দিন' }
+  'testimonialForm.submit': { en: 'Submit', bn: 'জমা দিন' },
+
+  'blog.allPosts': { en: 'All Posts', bn: 'সব পোস্ট' },
+  'blog.searchDesc': { en: 'Search by title, or filter by tag.', bn: 'শিরোনাম দিয়ে খুঁজুন, বা ট্যাগ দিয়ে ফিল্টার করুন।' },
+  'blog.searchPh': { en: 'Search posts...', bn: 'পোস্ট খুঁজুন...' },
+  'blog.allTag': { en: 'All', bn: 'সব' },
+  'blog.noMatch': { en: 'No posts match your search.', bn: 'আপনার সার্চের সাথে কোনো পোস্ট মেলেনি।' },
+  'blog.minRead': { en: 'min read', bn: 'মিনিট পড়া' },
+  'blog.readMore': { en: 'Read more', bn: 'আরও পড়ুন' },
+  'blog.backToBlog': { en: 'Back to Blog', bn: 'ব্লগে ফিরে যান' },
+  'blog.relatedPosts': { en: 'Related Posts', bn: 'সম্পর্কিত পোস্ট' },
+  'blog.viewAllPosts': { en: 'View All Posts', bn: 'সব পোস্ট দেখুন' },
+  'blog.noPostsYet': { en: 'No posts yet', bn: 'এখনো কোনো পোস্ট নেই' },
+  'blog.checkBackSoon': { en: 'Check back soon.', bn: 'শীঘ্রই আবার দেখুন।' },
+  'blog.eyebrowWriting': { en: 'Writing', bn: 'লেখালেখি' },
+  'blog.backToPortfolio': { en: 'Back to portfolio', bn: 'পোর্টফোলিওতে ফিরে যান' },
+  'blog.notFoundEyebrow': { en: 'Not found', bn: 'পাওয়া যায়নি' },
+  'blog.notFoundTitle': { en: "This post doesn't exist (yet)", bn: 'এই পোস্টটি এখনো নেই' },
+  'blog.notFoundDesc': { en: 'It may have been removed, or the link is out of date.', bn: 'এটি হয়তো সরিয়ে ফেলা হয়েছে, অথবা লিংকটি পুরনো।' },
+
+  'comments.heading': { en: 'Comments', bn: 'মন্তব্য' },
+  'comments.empty': { en: 'No comments yet — be the first to share your thoughts.', bn: 'এখনো কোনো মন্তব্য নেই — প্রথম মন্তব্যটি আপনিই করুন।' },
+  'comments.nameLabel': { en: 'Name', bn: 'নাম' },
+  'comments.textLabel': { en: 'Comment', bn: 'মন্তব্য' },
+  'comments.submit': { en: 'Post Comment', bn: 'মন্তব্য জমা দিন' },
+  'comments.note': { en: 'Comments are reviewed before they appear publicly.', bn: 'মন্তব্য পর্যালোচনার পর প্রকাশিত হবে।' },
+  'comments.thanks': { en: 'Thanks — your comment is awaiting approval and will appear here once reviewed.', bn: 'ধন্যবাদ — আপনার মন্তব্যটি অনুমোদনের অপেক্ষায় আছে, পর্যালোচনার পর এখানে দেখা যাবে।' }
 };
 
 const I18n = {

@@ -192,7 +192,7 @@
       <div class="about-grid">
         <div class="about-photo-wrap reveal">
           <div class="about-photo-frame">
-            <img id="aboutPhoto" src="assets/images/profile/profile.svg" alt="Portrait of Shagar Chandro" loading="lazy" width="500" height="500" />
+            <img id="aboutPhoto" src="assets/images/profile/profile.png" alt="Portrait of Shagar Chandro" loading="lazy" width="500" height="500" />
           </div>
           <div class="about-photo-badge"><strong id="aboutExpBadge">1+</strong>Years<br />Experience</div>
         </div>
@@ -206,7 +206,10 @@
             <div class="about-meta-item"><span class="label" data-i18n="about.email">EMAIL</span><a class="contact-info-link" id="aboutEmail" href="#"></a></div>
             <div class="about-meta-item"><span class="label" data-i18n="about.location">LOCATION</span><span id="aboutLocation"></span></div>
           </div>
-          <a href="#contact" class="btn btn-primary" data-nav><i class="fa-solid fa-paper-plane"></i> <span data-i18n="about.getInTouch">Get In Touch</span></a>
+          <div class="about-cta-row">
+            <a href="#contact" class="btn btn-primary" data-nav><i class="fa-solid fa-paper-plane"></i> <span data-i18n="about.getInTouch">Get In Touch</span></a>
+            <a href="#" id="aboutResumeBtn" download class="btn btn-outline"><i class="fa-solid fa-download"></i> <span data-i18n="about.downloadResume">Download Resume</span></a>
+          </div>
           <div class="about-stats" id="aboutStats"></div>
         </div>
       </div>
@@ -221,6 +224,7 @@
         <h2 class="section-title" data-i18n="skills.titleHtml">My <span class="accent-text">Tech Stack</span></h2>
         <p class="section-desc" data-i18n="skills.desc">Tools and technologies I use to bring ideas to life.</p>
       </div>
+      <div class="project-filters" id="skillsFilters"></div>
       <div class="skills-grid" id="skillsGrid"></div>
     </div>
   </section>
@@ -280,7 +284,7 @@
       </div>
       <div class="blog-grid" id="blogGrid"></div>
       <div style="text-align:center;margin-top:var(--sp-6)">
-        <a href="blog.html" class="btn btn-outline"><i class="fa-solid fa-layer-group"></i> View All Posts</a>
+        <a href="blog.html" class="btn btn-outline"><i class="fa-solid fa-layer-group"></i> <span data-i18n="blog.viewAllPosts">View All Posts</span></a>
       </div>
     </div>
   </section>
@@ -338,6 +342,7 @@
         <h2 class="section-title" data-i18n="gallery.titleHtml">Behind The <span class="accent-text">Scenes</span></h2>
         <p class="section-desc" data-i18n="gallery.desc">A few snapshots outside of the code editor.</p>
       </div>
+      <div class="project-filters" id="galleryFilters"></div>
       <div class="gallery-grid" id="galleryGrid"></div>
     </div>
   </section>
@@ -350,7 +355,9 @@
         <h2 class="section-title" data-i18n="testimonials.titleHtml">What People <span class="accent-text">Say</span></h2>
       </div>
       <div class="testimonial-track-wrap">
+        <button class="testimonial-nav testimonial-prev" id="testimonialPrev" aria-label="Previous testimonial" type="button"><i class="fa-solid fa-chevron-left"></i></button>
         <div class="testimonial-track" id="testimonialTrack"></div>
+        <button class="testimonial-nav testimonial-next" id="testimonialNext" aria-label="Next testimonial" type="button"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
       <div class="testimonial-dots" id="testimonialDots"></div>
       <div style="text-align:center;margin-top:var(--sp-7)">
@@ -371,12 +378,17 @@
   </section>
 
   <!-- ===== CONTACT ===== -->
-  <section class="section" id="contact">
+  <section class="section" id="contact" style="position:relative;overflow:hidden">
+    <span class="glow-orb contact-glow" aria-hidden="true"></span>
     <div class="container section-inner">
       <div class="section-head">
         <p class="eyebrow"><i class="fa-solid fa-envelope" aria-hidden="true"></i> <span data-i18n="contact.eyebrow">Contact</span></p>
         <h2 class="section-title" data-i18n="contact.titleHtml">Let's Work <span class="accent-text">Together</span></h2>
         <p class="section-desc" data-i18n="contact.desc">Have a project in mind? Send a message and I'll get back to you.</p>
+        <div class="availability-badge" id="availabilityBadge" hidden>
+          <span class="availability-dot"></span>
+          <span id="availabilityText"></span>
+        </div>
       </div>
       <div class="contact-grid">
         <div class="reveal">
@@ -430,12 +442,14 @@
           </div>
           <div class="field" id="fieldMessage">
             <label for="cf-message" data-i18n="contact.messageLabel">Message</label>
-            <textarea id="cf-message" name="message" placeholder="Tell me about your project..." data-i18n-placeholder="contact.messagePh" required></textarea>
+            <textarea id="cf-message" name="message" placeholder="Tell me about your project..." data-i18n-placeholder="contact.messagePh" required maxlength="2000"></textarea>
             <span class="field-error">Please enter a message (min 10 characters).</span>
+            <span class="char-counter" id="messageCharCounter">0 / 2000</span>
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="contactSubmitBtn">
             <i class="fa-solid fa-paper-plane"></i> <span data-i18n="contact.sendBtn">Send Message</span>
           </button>
+          <p class="form-response-time" id="formResponseTime"></p>
           <p class="form-status" id="formStatus"></p>
         </form>
       </div>
@@ -502,7 +516,16 @@
 <!-- ===== Lightbox ===== -->
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" id="lightboxClose" aria-label="Close image"><i class="fa-solid fa-xmark"></i></button>
-  <img id="lightboxImg" src="" alt="" />
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous image"><i class="fa-solid fa-chevron-left"></i></button>
+  <div class="lightbox-stage">
+    <img id="lightboxImg" src="" alt="" />
+    <div class="lightbox-info">
+      <span id="lightboxCaption"></span>
+      <span class="lightbox-counter" id="lightboxCounter"></span>
+    </div>
+    <div class="lightbox-thumbs" id="lightboxThumbs"></div>
+  </div>
+  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
 </div>
 
 <!-- ===== Scroll to top ===== -->

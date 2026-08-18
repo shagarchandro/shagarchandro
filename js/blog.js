@@ -64,35 +64,37 @@
     if (!allPosts.length) {
       root.innerHTML = `
         <div class="blog-post-not-found">
-          <p class="eyebrow"><i class="fa-solid fa-pen-nib"></i> Blog</p>
-          <h1 class="section-title">No posts yet</h1>
-          <p class="section-desc" style="margin-bottom:var(--sp-6)">Check back soon.</p>
-          <a href="index.html" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> Back to portfolio</a>
+          <p class="eyebrow"><i class="fa-solid fa-pen-nib"></i> <span data-i18n="nav.blog">Blog</span></p>
+          <h1 class="section-title" data-i18n="blog.noPostsYet">No posts yet</h1>
+          <p class="section-desc" style="margin-bottom:var(--sp-6)" data-i18n="blog.checkBackSoon">Check back soon.</p>
+          <a href="index.html" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="blog.backToPortfolio">Back to portfolio</span></a>
         </div>
       `;
+      I18n.apply(I18n.get());
       return;
     }
 
     root.innerHTML = `
       <div class="blog-post-header">
-        <p class="eyebrow"><i class="fa-solid fa-pen-nib"></i> Writing</p>
-        <h1 class="section-title">All Posts</h1>
-        <p class="section-desc">Search by title, or filter by tag.</p>
+        <p class="eyebrow"><i class="fa-solid fa-pen-nib"></i> <span data-i18n="blog.eyebrowWriting">Writing</span></p>
+        <h1 class="section-title" data-i18n="blog.allPosts">All Posts</h1>
+        <p class="section-desc" data-i18n="blog.searchDesc">Search by title, or filter by tag.</p>
       </div>
       <div class="blog-archive-toolbar">
         <div class="blog-archive-search">
           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-          <input type="search" id="archiveSearch" placeholder="Search posts..." aria-label="Search blog posts" />
+          <input type="search" id="archiveSearch" placeholder="Search posts..." data-i18n-placeholder="blog.searchPh" aria-label="Search blog posts" />
         </div>
         ${allTags.length ? `
           <div class="blog-archive-tags" id="archiveTags">
-            <button type="button" class="blog-archive-tag active" data-tag="">All</button>
+            <button type="button" class="blog-archive-tag active" data-tag="" data-i18n="blog.allTag">All</button>
             ${allTags.map(t => `<button type="button" class="blog-archive-tag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}
           </div>
         ` : ''}
       </div>
       <div class="blog-grid" id="archiveGrid"></div>
     `;
+    I18n.apply(I18n.get());
 
     const grid = document.getElementById('archiveGrid');
     const searchInput = document.getElementById('archiveSearch');
@@ -109,7 +111,8 @@
       });
 
       if (!filtered.length) {
-        grid.innerHTML = `<div class="blog-archive-empty" style="grid-column:1/-1"><i class="fa-solid fa-magnifying-glass" style="font-size:1.5rem;margin-bottom:var(--sp-3);display:block"></i>No posts match your search.</div>`;
+        grid.innerHTML = `<div class="blog-archive-empty" style="grid-column:1/-1"><i class="fa-solid fa-magnifying-glass" style="font-size:1.5rem;margin-bottom:var(--sp-3);display:block"></i><span data-i18n="blog.noMatch">No posts match your search.</span></div>`;
+        I18n.apply(I18n.get());
         return;
       }
 
@@ -119,13 +122,14 @@
             <img src="${post.cover}" alt="${escapeHtml(post.title)}" loading="lazy" />
           </a>
           <div class="blog-card-body">
-            <span class="blog-card-date">${escapeHtml(formatDate(post.date))} · ${readingTime(post)} min read</span>
+            <span class="blog-card-date">${escapeHtml(formatDate(post.date))} · ${readingTime(post)} <span data-i18n="blog.minRead">min read</span></span>
             <h3 class="blog-card-title">${escapeHtml(post.title)}</h3>
             <p class="blog-card-excerpt">${escapeHtml(post.excerpt)}</p>
-            <a class="blog-card-link" href="blog.html?post=${encodeURIComponent(post.slug || post.id)}">Read more <i class="fa-solid fa-arrow-right"></i></a>
+            <a class="blog-card-link" href="blog.html?post=${encodeURIComponent(post.slug || post.id)}"><span data-i18n="blog.readMore">Read more</span> <i class="fa-solid fa-arrow-right"></i></a>
           </div>
         </article>
       `).join('');
+      I18n.apply(I18n.get());
     }
 
     searchInput.addEventListener('input', renderGrid);
@@ -149,12 +153,13 @@
   } else if (!post) {
     root.innerHTML = `
       <div class="blog-post-not-found">
-        <p class="eyebrow"><i class="fa-solid fa-triangle-exclamation"></i> Not found</p>
-        <h1 class="section-title">This post doesn't exist (yet)</h1>
-        <p class="section-desc" style="margin-bottom:var(--sp-6)">It may have been removed, or the link is out of date.</p>
-        <a href="blog.html" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> Back to Blog</a>
+        <p class="eyebrow"><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="blog.notFoundEyebrow">Not found</span></p>
+        <h1 class="section-title" data-i18n="blog.notFoundTitle">This post doesn't exist (yet)</h1>
+        <p class="section-desc" style="margin-bottom:var(--sp-6)" data-i18n="blog.notFoundDesc">It may have been removed, or the link is out of date.</p>
+        <a href="blog.html" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="blog.backToBlog">Back to Blog</span></a>
       </div>
     `;
+    I18n.apply(I18n.get());
     document.title = 'Post not found — Shagar Chandro';
   } else {
     document.title = `${post.title} — Shagar Chandro`;
@@ -257,7 +262,7 @@
       </div>
       ${related.length ? `
         <div class="related-posts">
-          <h2>Related Posts</h2>
+          <h2 data-i18n="blog.relatedPosts">Related Posts</h2>
           <div class="related-posts-grid">
             ${related.map(p => `
               <a class="related-post-card" href="blog.html?post=${encodeURIComponent(p.slug || p.id)}">
@@ -269,7 +274,7 @@
         </div>
       ` : ''}
       <div class="blog-comments">
-        <h2>Comments <span class="blog-comments-count">(${postComments.length})</span></h2>
+        <h2><span data-i18n="comments.heading">Comments</span> <span class="blog-comments-count">(${postComments.length})</span></h2>
         <div class="blog-comments-list">
           ${postComments.length ? postComments.map(c => `
             <div class="blog-comment">
@@ -279,7 +284,7 @@
                 <p>${escapeHtml(c.text)}</p>
               </div>
             </div>
-          `).join('') : `<p class="blog-comments-empty">No comments yet — be the first to share your thoughts.</p>`}
+          `).join('') : `<p class="blog-comments-empty" data-i18n="comments.empty">No comments yet — be the first to share your thoughts.</p>`}
         </div>
         <form id="commentForm" class="blog-comment-form">
           <div class="field-hp" aria-hidden="true">
@@ -287,21 +292,22 @@
             <input type="text" id="comment-website" tabindex="-1" autocomplete="off" />
           </div>
           <div class="field">
-            <label for="comment-name">Name</label>
+            <label for="comment-name" data-i18n="comments.nameLabel">Name</label>
             <input type="text" id="comment-name" required maxlength="60" />
           </div>
           <div class="field">
-            <label for="comment-text">Comment</label>
+            <label for="comment-text" data-i18n="comments.textLabel">Comment</label>
             <textarea id="comment-text" required maxlength="1000" rows="3"></textarea>
           </div>
-          <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-paper-plane"></i> Post Comment</button>
-          <p class="blog-comment-note">Comments are reviewed before they appear publicly.</p>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="comments.submit">Post Comment</span></button>
+          <p class="blog-comment-note" data-i18n="comments.note">Comments are reviewed before they appear publicly.</p>
         </form>
       </div>
       <div style="text-align:center;margin-top:var(--sp-6)">
-        <a href="blog.html" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Blog</a>
+        <a href="blog.html" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="blog.backToBlog">Back to Blog</span></a>
       </div>
     `;
+    I18n.apply(I18n.get());
 
     document.getElementById('copyLinkBtn').addEventListener('click', async (e) => {
       const btn = e.currentTarget;
@@ -336,7 +342,8 @@
       });
 
       const form = document.getElementById('commentForm');
-      form.innerHTML = `<p class="blog-comment-note" style="font-size:var(--fs-sm)"><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Thanks — your comment is awaiting approval and will appear here once reviewed.</p>`;
+      form.innerHTML = `<p class="blog-comment-note" style="font-size:var(--fs-sm)"><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> <span data-i18n="comments.thanks">Thanks — your comment is awaiting approval and will appear here once reviewed.</span></p>`;
+      I18n.apply(I18n.get());
     });
   }
 

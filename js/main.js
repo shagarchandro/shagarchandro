@@ -242,6 +242,8 @@
     setupEmailLink(document.getElementById('aboutEmail'), data.contact.email);
     document.getElementById('aboutLocation').textContent = data.contact.address;
     document.getElementById('aboutExpBadge').textContent = (data.about.experienceSummary.match(/\d+/) || ['1'])[0] + '+';
+    const aboutResumeBtn = document.getElementById('aboutResumeBtn');
+    if (aboutResumeBtn) aboutResumeBtn.href = data.profile.resumeUrl;
 
     const statsWrap = document.getElementById('aboutStats');
     statsWrap.innerHTML = (data.about.stats || []).map((s, i) => `
@@ -253,16 +255,43 @@
   }
 
   /* ============================ SKILLS ============================ */
+  function proficiencyLabel(pct) {
+    if (pct >= 90) return { key: 'skills.levelExpert', fallback: 'Expert' };
+    if (pct >= 75) return { key: 'skills.levelAdvanced', fallback: 'Advanced' };
+    if (pct >= 50) return { key: 'skills.levelIntermediate', fallback: 'Intermediate' };
+    return { key: 'skills.levelBeginner', fallback: 'Beginner' };
+  }
   function renderSkills() {
     const wrap = document.getElementById('skillsGrid');
-    wrap.innerHTML = data.skills.map((s, i) => `
-      <div class="skill-card card reveal magnetic" style="transition-delay:${i * 60}ms">
-        <div class="skill-icon"><i class="${escapeAttr(s.icon)}" aria-hidden="true"></i></div>
-        <div class="skill-name">${escapeHtml(s.name)}</div>
-        <div class="skill-bar-track"><div class="skill-bar" data-pct="${s.percentage}"></div></div>
-        <div class="skill-pct">${s.percentage}%</div>
-      </div>
-    `).join('');
+    const filterWrap = document.getElementById('skillsFilters');
+    const categories = ['All', ...new Set(data.skills.map(s => s.category).filter(Boolean))];
+    filterWrap.innerHTML = categories.length > 2
+      ? categories.map((c, i) => `<button class="filter-btn ${i === 0 ? 'active' : ''}" data-filter="${escapeAttr(c)}" type="button"${c === 'All' ? ' data-i18n="projects.filterAll"' : ''}>${escapeHtml(c)}</button>`).join('')
+      : '';
+
+    function draw(filter) {
+      const filtered = filter && filter !== 'All' ? data.skills.filter(s => s.category === filter) : data.skills;
+      wrap.innerHTML = filtered.map((s, i) => {
+        const level = proficiencyLabel(s.percentage);
+        return `
+        <div class="skill-card card reveal magnetic" style="transition-delay:${i * 60}ms">
+          <div class="skill-icon"><i class="${escapeAttr(s.icon)}" aria-hidden="true"></i></div>
+          <div class="skill-name">${escapeHtml(s.name)}</div>
+          <div class="skill-bar-track"><div class="skill-bar" data-pct="${s.percentage}"></div></div>
+          <div class="skill-meta"><span class="skill-level" data-i18n="${level.key}">${level.fallback}</span><span class="skill-pct">${s.percentage}%</span></div>
+        </div>
+      `;
+      }).join('');
+      requestAnimationFrame(() => { observeReveal(); bindMagnetic(); I18n.apply(I18n.get()); });
+    }
+    draw('All');
+
+    filterWrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      filterWrap.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      draw(btn.dataset.filter);
+    });
   }
 
   /* ============================ PROJECTS ============================ */
@@ -517,27 +546,98 @@
   /* ============================ GALLERY ============================ */
   function renderGallery() {
     const grid = document.getElementById('galleryGrid');
-    grid.innerHTML = data.gallery.map((g, i) => `
-      <div class="gallery-item reveal" style="transition-delay:${i * 50}ms" data-img="${escapeAttr(g.image)}" data-caption="${escapeAttr(g.caption)}" role="button" tabindex="0" aria-label="View ${escapeAttr(g.caption)} image">
-        <img src="${escapeAttr(g.image)}" alt="${escapeAttr(g.caption)}" loading="lazy" data-shimmer />
-        <div class="gallery-caption">${escapeHtml(g.caption)}</div>
-      </div>
-    `).join('');
+    const filterWrap = document.getElementById('galleryFilters');
+    const categories = ['All', ...new Set(data.gallery.map(g => g.category).filter(Boolean))];
+    // Only worth showing a filter bar once there's more than one real
+    // category to choose between — otherwise it's just visual noise.
+    filterWrap.innerHTML = categories.length > 2
+      ? categories.map((c, i) => `<button class="filter-btn ${i === 0 ? 'active' : ''}" data-filter="${escapeAttr(c)}" type="button"${c === 'All' ? ' data-i18n="projects.filterAll"' : ''}>${escapeHtml(c)}</button>`).join('')
+      : '';
 
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightboxImg');
-    function openLightbox(item) {
-      lightboxImg.src = item.dataset.img;
-      lightboxImg.alt = item.dataset.caption;
-      lightbox.classList.add('open');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+    const lightboxCounter = document.getElementById('lightboxCounter');
+    const lightboxThumbs = document.getElementById('lightboxThumbs');
+    let items = data.gallery;
+    let currentIndex = 0;
+
+    function showImage(index) {
+      currentIndex = (index + items.length) % items.length;
+      const item = items[currentIndex];
+      lightboxImg.src = item.image;
+      lightboxImg.alt = item.caption;
+      lightboxCaption.textContent = item.caption;
+      lightboxCounter.textContent = items.length > 1 ? `${currentIndex + 1} / ${items.length}` : '';
+      lightboxThumbs.querySelectorAll('.lightbox-thumb').forEach((t, i) => t.classList.toggle('active', i === currentIndex));
+      const activeThumb = lightboxThumbs.children[currentIndex];
+      if (activeThumb) activeThumb.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     }
-    grid.querySelectorAll('.gallery-item').forEach(item => {
-      item.addEventListener('click', () => openLightbox(item));
-      item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(item); } });
+    function openLightbox(index) {
+      lightboxThumbs.innerHTML = items.length > 1
+        ? items.map((it, i) => `<button type="button" class="lightbox-thumb" data-i="${i}" aria-label="${escapeAttr(it.caption)}"><img src="${escapeAttr(it.image)}" alt="" loading="lazy" /></button>`).join('')
+        : '';
+      lightboxThumbs.querySelectorAll('.lightbox-thumb').forEach(t => t.addEventListener('click', () => showImage(Number(t.dataset.i))));
+      showImage(index);
+      lightbox.classList.add('open');
+      const multi = items.length > 1;
+      document.getElementById('lightboxPrev').hidden = !multi;
+      document.getElementById('lightboxNext').hidden = !multi;
+    }
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+    }
+
+    // Bento-style variety: every 5th tile (within the currently visible set)
+    // spans two grid columns instead of the uniform square grid — reads as
+    // a curated, editorial layout rather than a plain thumbnail wall.
+    // grid-auto-flow: dense (in CSS) fills in any gaps this leaves behind.
+    function draw(filter) {
+      items = filter === 'All' ? data.gallery : data.gallery.filter(g => g.category === filter);
+      grid.innerHTML = items.map((g, i) => `
+        <div class="gallery-item reveal${i % 5 === 0 && items.length > 2 ? ' gallery-item-wide' : ''}" style="transition-delay:${i * 50}ms" data-index="${i}" role="button" tabindex="0" aria-label="View ${escapeAttr(g.caption)} image">
+          <img src="${escapeAttr(g.image)}" alt="${escapeAttr(g.caption)}" loading="lazy" data-shimmer />
+          <div class="gallery-caption">${escapeHtml(g.caption)}</div>
+        </div>
+      `).join('');
+      grid.querySelectorAll('.gallery-item').forEach(item => {
+        const openThis = () => openLightbox(Number(item.dataset.index));
+        item.addEventListener('click', openThis);
+        item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openThis(); } });
+      });
+      requestAnimationFrame(() => { observeReveal(); bindShimmer(); });
+    }
+    draw('All');
+
+    filterWrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      filterWrap.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      draw(btn.dataset.filter);
     });
-    document.getElementById('lightboxClose').addEventListener('click', () => lightbox.classList.remove('open'));
-    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('open'); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lightbox.classList.remove('open'); });
+
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    document.getElementById('lightboxPrev').addEventListener('click', (e) => { e.stopPropagation(); showImage(currentIndex - 1); });
+    document.getElementById('lightboxNext').addEventListener('click', (e) => { e.stopPropagation(); showImage(currentIndex + 1); });
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+      else if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+    });
+
+    // Swipe left/right to navigate on touch devices — a click-only lightbox
+    // is a poor fit for a photo gallery on mobile, where swiping is the
+    // expected gesture.
+    let touchStartX = null;
+    lightbox.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+    lightbox.addEventListener('touchend', (e) => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) showImage(currentIndex + (dx < 0 ? 1 : -1));
+      touchStartX = null;
+    }, { passive: true });
   }
 
   /* ============================ TESTIMONIALS ============================ */
@@ -555,10 +655,16 @@
     `).join('');
 
     const count = data.testimonials.length;
+    const prevBtn = document.getElementById('testimonialPrev');
+    const nextBtn = document.getElementById('testimonialNext');
     if (count === 0) {
       dotsWrap.innerHTML = '';
+      prevBtn.hidden = true;
+      nextBtn.hidden = true;
       return;
     }
+    prevBtn.hidden = count < 2;
+    nextBtn.hidden = count < 2;
     dotsWrap.innerHTML = Array.from({ length: count }).map((_, i) => `<button data-i="${i}" aria-label="Go to testimonial ${i + 1}" class="${i === 0 ? 'active' : ''}"></button>`).join('');
 
     let current = 0;
@@ -573,6 +679,9 @@
       const btn = e.target.closest('button');
       if (btn) goTo(Number(btn.dataset.i));
     });
+    document.getElementById('testimonialPrev').addEventListener('click', () => goTo((current - 1 + count) % count));
+    document.getElementById('testimonialNext').addEventListener('click', () => goTo((current + 1) % count));
+
     let autoTimer = null;
     function startAuto() {
       if (count < 2) return;
@@ -585,6 +694,22 @@
     const wrap = track.closest('.testimonial-track-wrap');
     wrap.addEventListener('mouseenter', stopAuto);
     wrap.addEventListener('mouseleave', startAuto);
+
+    // Swipe left/right on touch devices — mirrors the same gesture added to
+    // the gallery lightbox, since a carousel with only clickable dots is an
+    // awkward fit for mobile where swiping is the expected interaction.
+    let touchStartX = null;
+    wrap.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+      stopAuto();
+    }, { passive: true });
+    wrap.addEventListener('touchend', (e) => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 40) goTo((current + (dx < 0 ? 1 : -1) + count) % count);
+      touchStartX = null;
+      startAuto();
+    }, { passive: true });
   }
 
   /* ============================ CONTACT ============================ */
@@ -597,6 +722,21 @@
     phoneLink.href = `tel:${data.contact.phone.replace(/[^\d+]/g, '')}`;
 
     setupEmailLink(emailLink, data.contact.email);
+
+    const availabilityBadge = document.getElementById('availabilityBadge');
+    if (data.contact.availabilityEnabled && data.contact.availabilityText) {
+      availabilityBadge.hidden = false;
+      availabilityBadge.dataset.status = data.contact.availabilityStatus || 'available';
+      document.getElementById('availabilityText').textContent = data.contact.availabilityText;
+    } else {
+      availabilityBadge.hidden = true;
+    }
+
+    const responseTimeEl = document.getElementById('formResponseTime');
+    if (responseTimeEl) {
+      responseTimeEl.textContent = data.contact.responseTime || '';
+      responseTimeEl.hidden = !data.contact.responseTime;
+    }
 
     document.getElementById('footerAbout').textContent = data.about.text.slice(0, 130) + '...';
 
@@ -671,6 +811,17 @@
         if (fieldEl.classList.contains('invalid')) validateFieldEl(fieldEl, rules[id].fn);
       });
     });
+
+    const messageInput = document.getElementById('cf-message');
+    const charCounter = document.getElementById('messageCharCounter');
+    const maxLen = Number(messageInput.getAttribute('maxlength')) || 2000;
+    const updateCharCounter = () => {
+      const len = messageInput.value.length;
+      charCounter.textContent = `${len} / ${maxLen}`;
+      charCounter.classList.toggle('char-counter-warn', len >= maxLen * 0.9);
+    };
+    messageInput.addEventListener('input', updateCharCounter);
+    updateCharCounter();
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -916,10 +1067,10 @@
           <img src="${escapeAttr(post.cover)}" alt="${escapeAttr(post.title)}" loading="lazy" data-shimmer />
         </a>
         <div class="blog-card-body">
-          <span class="blog-card-date">${escapeHtml(formatDate(post.date))} · ${readingTime(post)} min read</span>
+          <span class="blog-card-date">${escapeHtml(formatDate(post.date))} · ${readingTime(post)} <span data-i18n="blog.minRead">min read</span></span>
           <h3 class="blog-card-title">${escapeHtml(post.title)}</h3>
           <p class="blog-card-excerpt">${escapeHtml(post.excerpt)}</p>
-          <a class="blog-card-link" href="blog.html?post=${encodeURIComponent(post.slug || post.id)}">Read more <i class="fa-solid fa-arrow-right"></i></a>
+          <a class="blog-card-link" href="blog.html?post=${encodeURIComponent(post.slug || post.id)}"><span data-i18n="blog.readMore">Read more</span> <i class="fa-solid fa-arrow-right"></i></a>
         </div>
       </article>
     `).join('');
@@ -1366,7 +1517,7 @@
 
       DataStore.addItem('pendingTestimonials', {
         name, role, text, rating,
-        photo: 'assets/images/testimonials/t1.svg',
+        photo: 'assets/images/testimonials/t1.png',
         submittedAt: new Date().toISOString()
       });
 

@@ -14,6 +14,15 @@
   .services-grid { grid-template-columns: repeat(2, 1fr); }
   .skills-grid { grid-template-columns: repeat(3, 1fr); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
+
+  /* The full 8-item nav + search trigger + lang/theme toggles only ever
+     collapses to the hamburger menu at <=980px, but never actually shrinks
+     before that — on real laptop widths (roughly 981-1180px) it was wide
+     enough to overflow or wrap onto a second line. Tighten it here, ahead
+     of the hamburger breakpoint, so that gap never opens up. */
+  .nav-list:not(.nav-drawer .nav-list) { gap: var(--sp-4); font-size: 0.8rem; }
+  .cmdk-trigger-label, .cmdk-trigger kbd { display: none; }
+  .cmdk-trigger { padding: 0.6rem; }
 }
 
 /* ---------- Tablet ---------- */
